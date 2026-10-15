@@ -77,4 +77,16 @@ describe('annual', () => {
     expect(finite(r.totals)).toBe(true);
     expect(r.terminals).toBe(1);
   });
+  it('low demand is not penalized as a firm-capacity shortfall', () => {
+    const c = defaultConfig();
+    c.jobs.arrivalsPerHour = 100;
+    const r = runAnnual(c, 'representative', { sampleModules: 4 });
+    expect(r.availability!).toBeGreaterThan(0.9);
+  });
+
+  it('representative mode agrees with the full year on unmet essential load', () => {
+    const rep = runAnnual(defaultConfig(), 'representative', { sampleModules: 4 });
+    expect(full.totals.unmetKwh).toBeLessThan(0.01);
+    expect(rep.totals.unmetKwh).toBeLessThan(0.01);
+  });
 });

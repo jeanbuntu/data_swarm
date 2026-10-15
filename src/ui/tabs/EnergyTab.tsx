@@ -4,8 +4,9 @@ import { useFleet } from '../../state/store';
 import { runLiveDay } from '../../model/live';
 import { dateLabel } from '../../model/time';
 import { dayEnergy, monthlySeries } from './dayEnergy';
+import { utilization } from '../../model/metrics';
 import { Stat } from '../controls';
-import { fmtHour, fmtNum } from '../format';
+import { fmtHour, fmtNum, fmtPct } from '../format';
 import { TOOLTIP_STYLE, AXIS_PROPS, GRID_PROPS } from '../chartTheme';
 
 const HOUR_TICKS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
@@ -28,6 +29,7 @@ export function EnergyTab() {
     soc: p.socFrac * 100,
   }));
   const monthly = annual ? monthlySeries(annual) : null;
+  const util = annual ? utilization(cfg, annual) : null;
 
   return (
     <div className="tab-body">
@@ -90,6 +92,15 @@ export function EnergyTab() {
       </section>
       <section className="card">
         <h2>Across the year (average module, average day in each month)</h2>
+        {util && (
+          <div className="stats-row">
+            <Stat label="Card utilization" value={fmtPct(util.cardUtilization)} sub="Delivered compute over every card at full power, all year" />
+            <Stat label="Starlink link utilization" value={fmtPct(util.linkUtilization)} sub="Data moved over unthrottled link capacity" />
+            <Stat label="Hours limited by power" value={fmtPct(util.bindingShare.power)} />
+            <Stat label="Hours limited by bandwidth" value={fmtPct(util.bindingShare.bandwidth)} />
+            <Stat label="Hours limited by demand" value={fmtPct(util.bindingShare.demand)} />
+          </div>
+        )}
         {monthly ? (
           <>
             <h3>Energy per module per day (kWh)</h3>

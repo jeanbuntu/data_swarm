@@ -41,7 +41,7 @@ export function derive(cfg: SimConfig): Derived {
   const pvAreaM2 = hullTopM2 + petalM2;
   const cardsMaxW = c.cards * c.tdpW;
   const overheadFactor = 1 + c.coolingOverhead + (cardsMaxW > 0 ? c.hostW / cardsMaxW : 0);
-  const maxComputeElecW = cardsMaxW * overheadFactor;
+  const maxComputeElecW = c.denseTflops > 0 ? cardsMaxW * overheadFactor : 0;
   const tflopsPerElecW = cardsMaxW > 0 ? c.denseTflops / c.tdpW / overheadFactor : 0;
   const terminals = Math.ceil(cfg.swarm.count / cfg.comms.modulesPerTerminal);
   const shared = cfg.comms.modulesPerTerminal > 1;

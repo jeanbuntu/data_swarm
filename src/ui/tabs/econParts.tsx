@@ -82,6 +82,8 @@ export function PnlTable({ econ, cfg }: { econ: Econ; cfg: SimConfig }) {
     ...econ.opexLines.map((l) => [l.label, -l.usd] as [string, number]),
     ['Opex', -econ.opexTotal, true],
     ['Gross margin', econ.grossMargin, true],
+    ['Capital recovery (capex amortized, accelerators over their refresh life)', -econ.annualCapital],
+    ['Margin after capital', econ.grossMargin - econ.annualCapital, true],
   ];
   return (
     <section className="card">

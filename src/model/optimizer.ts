@@ -45,7 +45,10 @@ export function evaluate(cfg: SimConfig, sampleModules = 4): Evaluation {
 
 export function metricValue(ev: Evaluation, m: Metric): number {
   if (m === 'paybackMonths') return ev.paybackMonths ?? Infinity;
-  return ev[m];
+  const v = ev[m];
+  if (Number.isFinite(v)) return v;
+  // No delivered compute: rank it as the worst outcome rather than as break-even.
+  return METRICS.find((x) => x.id === m)!.better === 'high' ? -Infinity : Infinity;
 }
 
 export type Axis =

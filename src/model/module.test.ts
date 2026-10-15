@@ -126,3 +126,14 @@ describe('dispatch', () => {
     expect(f.chargeW).toBe(0);
   });
 });
+
+describe('zero-throughput accelerator', () => {
+  it('draws no compute power when the card delivers 0 TFLOPS', () => {
+    const c = defaultConfig();
+    c.compute.denseTflops = 0;
+    const d = derive(c);
+    expect(d.maxComputeElecW).toBe(0);
+    const f = dispatch(c, d, { pvW: 2000, propulsionW: 0, trackingActive: true, socKwh: 8, dtH: 0.25 });
+    expect(f.computeElecW).toBe(0);
+  });
+});

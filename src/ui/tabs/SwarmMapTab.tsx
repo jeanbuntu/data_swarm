@@ -104,6 +104,7 @@ export function SwarmMapTab() {
         <Stat label="Average battery" value={last ? fmtPct(last.socFrac) : 'n/a'} />
         <Stat label="Swarm compute" value={last ? `${fmtNum(last.tflops)} TFLOPS` : 'n/a'} />
         <Stat label="Jobs done, queued" value={`${fmtNum(s.jobs.completed)}, ${fmtNum(s.jobs.queue.length)}`} />
+        <Stat label="Mean job turnaround" value={s.jobs.completed ? `${fmtNum(s.jobs.turnaroundSumS / s.jobs.completed / 60, 1)} min` : 'n/a'} />
         <Stat label="Binding now" value={BINDING_LABEL[s.binding]} />
         <Stat label="Distance offshore" value={`${fmtNum(s.env.offshoreKm(s.swarm.centroid.x, s.swarm.centroid.y))} km`} />
       </div>

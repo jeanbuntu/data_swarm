@@ -69,4 +69,7 @@ describe('optimizer', () => {
     expect(Number.isFinite(ev.pflopHours)).toBe(true);
     expect(Number.isFinite(metricValue(ev, 'marginPerGpuHour'))).toBe(true);
   });
+  it('the default scenario is feasible in the optimizer', () => {
+    expect(evaluate(defaultConfig()).feasible).toBe(true);
+  });
 });

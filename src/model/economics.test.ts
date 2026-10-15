@@ -71,7 +71,10 @@ describe('economics', () => {
     expect(e.opexLines.find((l) => l.key === 'dataOverage')!.usd).toBe(0);
     expect(e.flows).toHaveLength(c.econ.horizonYears + 1);
     expect(e.flows[0]).toBeCloseTo(-e.capex.total, 6);
-    expect(e.costPerGpuHour).toBeCloseTo((e.capex.total * crf(c.econ.discountRate, c.econ.horizonYears) + e.opexTotal) / e.gpuHours, 6);
+    const cardCapex = c.compute.cards * c.compute.priceUsd * e.capex.fleetModules;
+    const capital = (e.capex.total - cardCapex) * crf(c.econ.discountRate, c.econ.horizonYears) + cardCapex * crf(c.econ.discountRate, c.econ.acceleratorRefreshYears);
+    expect(e.annualCapital).toBeCloseTo(capital, 6);
+    expect(e.costPerGpuHour).toBeCloseTo((capital + e.opexTotal) / e.gpuHours, 6);
     expect(e.annualPflopHours).toBeCloseTo((100000 * unit) / 3.6e6, 6);
   });
   it('charges data overage when paying per GB', () => {
@@ -87,7 +90,17 @@ describe('economics', () => {
     const e = economics(c, fakeAnnual({}, null));
     expect(e.gpuHours).toBe(0);
     expect(e.costPerGpuHour).toBe(Infinity);
-    expect(Number.isNaN(e.marginPerGpuHour)).toBe(false);
+    expect(Number.isNaN(e.marginPerGpuHour)).toBe(true);
     expect(e.paybackMonths).toBeNull();
+  });
+  it('does not double count accelerators: no refresh opex line, repurchase appears in cash flows', () => {
+    const c = defaultConfig();
+    const unit = 121 * 3600;
+    const e = economics(c, fakeAnnual({ tflop: 100000 * unit, spotTflop: 100000 * unit }, null));
+    expect(e.opexLines.find((l) => l.key === 'acceleratorRefresh')).toBeUndefined();
+    const cardCapex = c.compute.cards * c.compute.priceUsd * e.capex.fleetModules;
+    expect(e.flows[4]).toBeCloseTo(e.grossMargin - cardCapex, 6);
+    expect(e.flows[3]).toBeCloseTo(e.grossMargin, 6);
+    expect(e.flows[7]).toBeCloseTo(e.grossMargin, 6);
   });
 });

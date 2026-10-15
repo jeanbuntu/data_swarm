@@ -91,6 +91,7 @@ export interface Econ {
   opexLines: CostLine[];
   opexTotal: number;
   grossMargin: number;
+  annualCapital: number;
   costPerGpuHour: number;
   marginPerGpuHour: number;
   lcocPerPflopHour: number;
@@ -138,12 +139,17 @@ export function economics(cfg: SimConfig, annual: AnnualResult): Econ {
       key: 'batteryWear', label: 'Battery wear',
       usd: n * batteryLine * Math.min(1, annual.batteryCyclesPerModule / cfg.battery.cycleLife), estimate: false,
     },
-    { key: 'acceleratorRefresh', label: 'Accelerator refresh', usd: (n * cfg.compute.cards * cfg.compute.priceUsd) / e.acceleratorRefreshYears, estimate: true },
   ];
   const opexTotal = opexLines.reduce((a, l) => a + l.usd, 0);
-  const annualCost = capex.total * crf(e.discountRate, e.horizonYears) + opexTotal;
+  // Accelerators are amortized over their refresh interval and repurchased in the cash flows;
+  // the rest of the capex is amortized over the analysis horizon.
+  const refresh = Math.max(1, Math.round(e.acceleratorRefreshYears));
+  const cardCapex = cfg.compute.cards * cfg.compute.priceUsd * capex.fleetModules;
+  const annualCapital = (capex.total - cardCapex) * crf(e.discountRate, e.horizonYears) + cardCapex * crf(e.discountRate, refresh);
+  const annualCost = annualCapital + opexTotal;
   const grossMargin = revenue.total - opexTotal;
-  const flows = [-capex.total, ...new Array(e.horizonYears).fill(grossMargin)];
+  const flows = [-capex.total];
+  for (let y = 1; y <= e.horizonYears; y++) flows.push(grossMargin - (y % refresh === 0 && y < e.horizonYears ? cardCapex : 0));
   const annualPflopHours = t.tflop / 3.6e6;
   return {
     moduleCapex: mc,
@@ -157,8 +163,9 @@ export function economics(cfg: SimConfig, annual: AnnualResult): Econ {
     opexLines,
     opexTotal,
     grossMargin,
+    annualCapital,
     costPerGpuHour: gpuHours > 0 ? annualCost / gpuHours : Infinity,
-    marginPerGpuHour: gpuHours > 0 ? (revenue.total - annualCost) / gpuHours : 0,
+    marginPerGpuHour: gpuHours > 0 ? (revenue.total - annualCost) / gpuHours : NaN,
     lcocPerPflopHour: annualPflopHours > 0 ? annualCost / annualPflopHours : Infinity,
     marketFirm: e.firmUsdPerGpuH,
     marketSpot: e.spotUsdPerGpuH,

@@ -140,8 +140,9 @@ function simulateDay(
       day.tflop += f.tflops * dtS * scale;
       day.firmTflop += f.firmTflops * dtS * scale;
       day.spotTflop += f.spotTflops * dtS * scale;
-      day.firmCommittedTflop += firmTflopsPerModule * dtS * scale;
     });
+    // Firm commitment only counts capacity customers would actually use: unsold capacity is not a shortfall.
+    day.firmCommittedTflop += Math.min(firmTflopsPerModule * cfg.swarm.count, ctx.demandTflops) * dtS;
     const downGB = (agg.downMBps * dtS) / 1000;
     const upGB = (agg.upMBps * dtS) / 1000;
     day.downGB += downGB;
@@ -185,9 +186,12 @@ export function runAnnual(cfg: SimConfig, mode: 'full' | 'representative', opts:
       const runSet = (throttled: boolean) =>
         types.map((type) => {
           const env = createEnvironment(cfg, { forcedDayType: type });
+          // Warm up on an average day so the battery enters the measured day in a typical state;
+          // repeating the forced day type would stack two overcast days and overstate shortfalls.
+          const warmEnv = createEnvironment({ ...cfg, env: { ...cfg.env, dayVariability: 0 } });
           const sw = initSwarm(params);
           const soc = startSoc();
-          simulateDay(ctx, env, doy, sw, soc, () => throttled, () => {});
+          simulateDay(ctx, warmEnv, doy, sw, soc, () => throttled, () => {});
           let gb = 0;
           const day = simulateDay(ctx, env, doy, sw, soc, () => throttled, (g) => { gb += g; });
           return { type, day, gb };

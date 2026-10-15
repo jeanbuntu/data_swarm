@@ -17,3 +17,5 @@ export const HOST_VOLUME_L = 15;
 export const HX_VOLUME_L = 10;
 /** Tidal current axis in the Bight, degrees clockwise from north (estimate, roughly alongshore). */
 export const TIDAL_AXIS_DEG = 300;
+/** Time constant for a module's correction back toward its slot, seconds (design choice). */
+export const CONTROL_TAU_S = 600;

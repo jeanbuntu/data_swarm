@@ -91,3 +91,16 @@ describe('swarm', () => {
     expect(s.modules.some((m) => m.stray)).toBe(true);
   });
 });
+
+describe('station-keeping efficiency', () => {
+  it('holding against a steady current costs close to the ideal continuous holding power', () => {
+    for (const dtS of [60, 900]) {
+      const p = params((p) => { p.strategy = 'station'; });
+      const cur = { x: 0.15, y: 0 };
+      const { energyWh } = run(p, flatEnv(cur), 24, dtS);
+      const meanW = energyWh / 24 / p.slots.length;
+      const ideal = propulsionPowerW(0.15, p.cd, p.areaM2, p.propEff);
+      expect(meanW, `dt=${dtS}`).toBeLessThan(3 * ideal);
+    }
+  });
+});

@@ -1,7 +1,7 @@
 import type { Vec } from './vec';
 import { add, sub, scale, len, unit } from './vec';
 import { normal, Rng } from './rng';
-import { RHO_SEA } from './constants';
+import { RHO_SEA, CONTROL_TAU_S } from './constants';
 import type { SimConfig, Strategy } from './config';
 import type { Derived } from './derive';
 
@@ -179,9 +179,13 @@ export function stepSwarm(s: SwarmState, p: SwarmParams, env: SwarmEnv, t: numbe
     if (d > p.breakawayM) m.stray = true;
     else if (d <= p.toleranceM) m.stray = false;
     let vw: Vec = { x: 0, y: 0 };
-    if (d > p.toleranceM || m.stray) {
+    // Where the module would sit relative to its slot after this step if it coasted.
+    const coastErr = len(sub(e, scale(sub(cur, vel), dtS)));
+    if (d > p.toleranceM || m.stray || coastErr > p.toleranceM) {
       const aim = Math.max(0, d - p.toleranceM * 0.5);
-      const desired = add(vel, scale(unit(e), Math.min(p.maxWaterSpeedMs, aim / dtS)));
+      // Close the gap over CONTROL_TAU_S rather than in one step: drag power grows with speed cubed,
+      // so gentle corrections cost far less than sprinting back at full thrust.
+      const desired = add(vel, scale(unit(e), Math.min(p.maxWaterSpeedMs, aim / Math.max(dtS, CONTROL_TAU_S))));
       vw = sub(desired, cur);
       const sp = len(vw);
       if (sp > p.maxWaterSpeedMs) vw = scale(vw, p.maxWaterSpeedMs / sp);

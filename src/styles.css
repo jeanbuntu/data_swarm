@@ -2,7 +2,7 @@
   --bg: #f3f6f8; --panel: #ffffff; --panel-2: #e9eff3; --text: #102030; --muted: #5b6d7a; --border: #d3dde4;
   --accent: #0b7a75; --accent-2: #1f5fa8; --warn: #a35f00; --error: #b3261e; --ok: #2e7d32;
   --ocean: #cfe2ec; --land: #e8e3d6; --land-edge: #b6ad97; --cloud: 255, 255, 255; --fence: 179, 38, 30;
-  --c1: #0b7a75; --c2: #1f5fa8; --c3: #c26b00; --c4: #7b4bb7; --c5: #b3261e; --c6: #5b6d7a;
+  --c1: #2a78d6; --c2: #1baf7a; --c3: #eda100; --c4: #6250d6; --c5: #e87ba4; --c6: #008300;
   --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --radius: 8px;
@@ -13,7 +13,7 @@
     --bg: #0b1620; --panel: #10202c; --panel-2: #152a38; --text: #e3edf3; --muted: #8aa0b0; --border: #22394a;
     --accent: #3cc4bc; --accent-2: #6aa8f0; --warn: #f0a940; --error: #f2766d; --ok: #6cc070;
     --ocean: #0d2a3d; --land: #1d2a2f; --land-edge: #3b4c52; --cloud: 230, 240, 248; --fence: 242, 118, 109;
-    --c1: #3cc4bc; --c2: #6aa8f0; --c3: #f0a940; --c4: #b18cf0; --c5: #f2766d; --c6: #8aa0b0;
+    --c1: #3987e5; --c2: #199e70; --c3: #c98500; --c4: #9085e9; --c5: #d55181; --c6: #008300;
     color-scheme: dark;
   }
 }
@@ -21,7 +21,7 @@
   --bg: #0b1620; --panel: #10202c; --panel-2: #152a38; --text: #e3edf3; --muted: #8aa0b0; --border: #22394a;
   --accent: #3cc4bc; --accent-2: #6aa8f0; --warn: #f0a940; --error: #f2766d; --ok: #6cc070;
   --ocean: #0d2a3d; --land: #1d2a2f; --land-edge: #3b4c52; --cloud: 230, 240, 248; --fence: 242, 118, 109;
-  --c1: #3cc4bc; --c2: #6aa8f0; --c3: #f0a940; --c4: #b18cf0; --c5: #f2766d; --c6: #8aa0b0;
+  --c1: #3987e5; --c2: #199e70; --c3: #c98500; --c4: #9085e9; --c5: #d55181; --c6: #008300;
   color-scheme: dark;
 }
 
@@ -128,3 +128,7 @@ table.data td.num, table.data th.num { text-align: right; font-variant-numeric: 
 .playback .field { min-width: 180px; }
 .controls-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px 14px; margin-bottom: 10px; }
 @media (max-width: 1100px) { .map-grid { grid-template-columns: minmax(0, 1fr); } }
+.flower { display: block; width: 100%; max-width: 420px; margin: 0 auto; aspect-ratio: 1; }
+.row-between { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 16px; }
+.row-between h2 { margin: 0; font-size: 15px; }
+.card h3 { font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--muted); }

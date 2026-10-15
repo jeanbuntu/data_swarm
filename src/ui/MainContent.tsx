@@ -1,6 +1,8 @@
 import { useFleet, type TabId } from '../state/store';
 import { Tabs } from './Tabs';
 import { SwarmMapTab } from './tabs/SwarmMapTab';
+import { ModuleTab } from './tabs/ModuleTab';
+import { EnergyTab } from './tabs/EnergyTab';
 
 function Pending({ what }: { what: string }) {
   return (
@@ -14,6 +16,10 @@ function renderTab(tab: TabId) {
   switch (tab) {
     case 'map':
       return <SwarmMapTab />;
+    case 'module':
+      return <ModuleTab />;
+    case 'energy':
+      return <EnergyTab />;
     default:
       return <Pending what="This view" />;
   }

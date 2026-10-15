@@ -132,3 +132,9 @@ table.data td.num, table.data th.num { text-align: right; font-variant-numeric: 
 .row-between { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 16px; }
 .row-between h2 { margin: 0; font-size: 15px; }
 .card h3 { font-size: 13px; font-weight: 600; margin: 12px 0 4px; color: var(--muted); }
+.hero h1 { margin: 0 0 6px; font-size: 26px; }
+.eyebrow { margin: 0; font-size: 11px; color: var(--accent); font-weight: 700; }
+.lede { margin: 0; font-size: 16px; max-width: 70ch; }
+.investor-view { max-width: 1200px; margin: 0 auto; }
+table.data tr.strong td { font-weight: 650; border-top: 1px solid var(--text); }
+.error-text { color: var(--error); }

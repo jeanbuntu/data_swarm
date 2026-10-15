@@ -3,6 +3,8 @@ import { Tabs } from './Tabs';
 import { SwarmMapTab } from './tabs/SwarmMapTab';
 import { ModuleTab } from './tabs/ModuleTab';
 import { EnergyTab } from './tabs/EnergyTab';
+import { EconomicsTab } from './tabs/EconomicsTab';
+import { InvestorView } from './InvestorView';
 
 function Pending({ what }: { what: string }) {
   return (
@@ -20,6 +22,8 @@ function renderTab(tab: TabId) {
       return <ModuleTab />;
     case 'energy':
       return <EnergyTab />;
+    case 'economics':
+      return <EconomicsTab />;
     default:
       return <Pending what="This view" />;
   }
@@ -28,7 +32,7 @@ function renderTab(tab: TabId) {
 export function MainContent() {
   const tab = useFleet((s) => s.tab);
   const investor = useFleet((s) => s.investor);
-  if (investor) return <Pending what="The investor view" />;
+  if (investor) return <InvestorView />;
   return (
     <>
       <Tabs />

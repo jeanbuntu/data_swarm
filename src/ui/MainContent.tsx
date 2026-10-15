@@ -4,16 +4,9 @@ import { SwarmMapTab } from './tabs/SwarmMapTab';
 import { ModuleTab } from './tabs/ModuleTab';
 import { EnergyTab } from './tabs/EnergyTab';
 import { EconomicsTab } from './tabs/EconomicsTab';
-import { InvestorView } from './InvestorView';
 import { OptimizerTab } from './tabs/OptimizerTab';
-
-function Pending({ what }: { what: string }) {
-  return (
-    <section className="card">
-      <p className="muted">{what} is not built yet.</p>
-    </section>
-  );
-}
+import { AssumptionsTab } from './tabs/AssumptionsTab';
+import { InvestorView } from './InvestorView';
 
 function renderTab(tab: TabId) {
   switch (tab) {
@@ -27,8 +20,8 @@ function renderTab(tab: TabId) {
       return <EconomicsTab />;
     case 'optimizer':
       return <OptimizerTab />;
-    default:
-      return <Pending what="This view" />;
+    case 'assumptions':
+      return <AssumptionsTab />;
   }
 }
 

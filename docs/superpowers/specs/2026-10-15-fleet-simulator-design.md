@@ -181,7 +181,7 @@ Capex stacked breakdown, annual P&L, payback curve, NPV and IRR at user discount
 
 ## 8. Optimizer
 
-Runs in a Web Worker on the 12 representative day model (one day per month). A test asserts the 12 day model is within a few percent of the 365 day run for the default scenario.
+Runs in a Web Worker on a representative-day model: for each month, one clear, one partly cloudy, and one overcast day weighted by the sourced day-type shares (36 days, plus a second throttled set for months that exceed the Starlink data cap), simulating a sample of 4 modules and scaling to the swarm. A test asserts this model is within a few percent of the 365 day run for the default scenario.
 
 1. **2D sweep:** user picks any two inputs as axes (for example battery kWh x card count, accelerator preset x petal span, panel preset x swarm strategy) and one target metric (delivered compute, cost per GPU-hour, margin, payback). Output: heatmap with infeasible cells hatched.
 2. **Pareto sampling:** about 500 random configs within user ranges, plotted as capex vs annual delivered compute (or margin), frontier highlighted. Clicking a point loads that config into the sliders.
@@ -194,7 +194,7 @@ KPI strip: PFLOP-h/yr | Binding constraint | Cost/GPU-h vs market | Margin | Pay
 Left: collapsible slider panels (Hull/Petals, Solar, Battery, Compute, Comms, Propulsion,
       Environment, Swarm, Jobs, Economics)
 Center tabs: Swarm Map | Module | Energy | Economics | Optimizer | Assumptions
-Playback bar: play/pause, speed 1x to 1000x, date scrubber
+Playback bar: play/pause, speed 60x to 20,000x (one simulated day in about 4 seconds at the top end), date scrubber
 ```
 
 - **Swarm Map:** live canvas simulation.
@@ -232,7 +232,7 @@ UI is verified by running the app in a browser and exercising each tab.
 
 ## 12. Out of scope (v1)
 
-Live weather or irradiance feeds, hydrodynamic hull simulation, RF link budgets, multi-swarm logistics, user accounts or a backend, deployment hosting.
+Live weather or irradiance feeds, hydrodynamic hull simulation, RF link budgets, multi-swarm logistics, user accounts or a backend, deployment hosting, and location presets outside Southern California (the map and marine-layer model are SoCal specific; other regions' sourced data is kept in the research file for a later version).
 
 ## Appendix A: Sourced default values
 
@@ -242,7 +242,7 @@ Default scenario (a starting point, expected to be revised once the optimizer ru
 
 | Parameter | Default | Basis |
 |---|---|---|
-| Location | Outer Bight, 33.3 N 119.5 W, geofence 20-150 km offshore | POWER cell, NDBC buoys |
+| Location | Outer Bight, 33.05 N 118.95 W (between Santa Catalina and San Nicolas islands; 33.3 N 119.5 W sits on San Nicolas), geofence 20-150 km offshore | POWER cell, NDBC buoys |
 | Monthly GHI | POWER outer Bight series, annual 4.95 kWh/m²/day | NASA POWER climatology 2001-2025 |
 | Marine layer | June hourly clearness 0.54 (06) to 0.80 (14) LST, seasonal strength from monthly clear/cloudy day shares | NASA POWER hourly and daily |
 | Current | 0.15 m/s toward 141°, variability to p90 0.39 m/s | Open-Meteo Marine (SMOC) |
@@ -252,7 +252,7 @@ Default scenario (a starting point, expected to be revised once the optimizer ru
 | Panels | CSI TOPHiKu6, 23.4%, -0.29%/°C, €0.120/W wholesale | Datasheet, sun.store index |
 | Battery | LFP, $81/kWh pack benchmark plus marine enclosure uplift, 179 Wh/kg cell, 92% RTE | BNEF 2025, EVE MB31 |
 | Accelerator | NVIDIA L4, 72 W, 121 TFLOPS dense FP16, $3,995 | NVIDIA, IT Creations |
-| Starlink | Mini (45 W modeled average, between official and measured), $149; Global Priority 500 GB $650/mo | Anker, EarthSims, DishyCentral |
+| Starlink | Mini (45 W modeled average, between official and measured), $149; Global Priority 1 TB $1,150/mo (500 GB throttles the default workload mix early each month) | Anker, EarthSims, DishyCentral |
 | Thrusters | 2x Blue Robotics T200, $230 each | Blue Robotics |
 | MPPT | Victron SmartSolar 150/35, $149 | SolarCellzUSA |
 | GNSS | SparkFun ZED-F9P, $184 | SparkFun |

@@ -38,6 +38,14 @@
 3. **Current faster than the thrusters can hold:** modules drift and become strays, positions stay finite, and feasibility warns. Pinned by `swarm.test.ts` "overpowered by current" and `feasibility.test.ts` "thrust warning".
 4. **Browser storage unavailable** (private window, blocked storage): the app loads the default scenario and works. Pinned by `store.test.ts` "loads without localStorage".
 5. **Swarm size extremes (1 and 100 modules) and tight spacing:** the annual run completes with finite totals. Pinned by `annual.test.ts` "single module" and `optimizer.test.ts` "100-module evaluation".
+6. **An invalid scenario state** (empty name field, an optimizer point outside slider bounds): it must never overwrite the last valid saved scenario or be exported, because a reload would otherwise fall back to defaults and silently lose the founder's work. Pinned by `store.persist.test.ts` "persists only valid configs". Pareto range inputs are clamped to slider bounds (Task 17), and Export refuses invalid configs with a message (Task 13).
+
+## Performance budget
+
+The approach was chosen for instant slider feedback, so timing is part of done:
+- Task 9 prints the wall time of `runAnnual(defaultConfig(), 'full')`. If it is over about 2 s on this machine, change the annual worker (Task 13) to post a representative-mode result first and the full-year result second.
+- Task 11 prints the wall time of one `evaluate()`. If it is over about 0.5 s, lower the Pareto default sample count in Task 17 from 200 so a run stays under about 2 minutes.
+- Module and Energy tabs (Task 15) run a full live day on config changes; they use `useDeferredValue` so slider drags stay smooth.
 
 ## File Map
 
@@ -3163,6 +3171,14 @@ const finite = (t: Totals) =>
 describe('annual', () => {
   const full = runAnnual(defaultConfig(), 'full');
 
+  it('reports full-year runtime', () => {
+    const t0 = performance.now();
+    runAnnual(defaultConfig(), 'full');
+    const ms = performance.now() - t0;
+    console.log(`runAnnual full: ${ms.toFixed(0)} ms`);
+    expect(ms).toBeLessThan(30000);
+  });
+
   it('covers a full year with finite totals', () => {
     expect(full.days).toHaveLength(365);
     expect(Math.abs(full.totals.hours - 8760)).toBeLessThan(1);
@@ -3465,7 +3481,7 @@ export function runAnnual(cfg: SimConfig, mode: 'full' | 'representative', opts:
 - [ ] **Step 4: Run tests and typecheck**
 
 Run: `npm test && npm run typecheck`
-Expected: PASS. The full-year test should take a few seconds. If the representative check misses its tolerance, first confirm the warm-up day runs before the measured day. Do not widen the tolerance without noting it in the spec.
+Expected: PASS. Note the printed `runAnnual full` time and apply the Performance budget rule (over about 2 s means the annual worker posts a representative result first). If the representative check misses its tolerance, first confirm the warm-up day runs before the measured day. Do not widen any tolerance in this plan to make a test pass; investigate the model, and if a tolerance truly must change, record why in the spec.
 
 - [ ] **Step 5: Commit**
 
@@ -3914,6 +3930,11 @@ describe('optimizer', () => {
     }
     for (const i of r.frontier) expect(r.points[i]).toBeDefined();
   });
+  it('reports evaluate runtime', () => {
+    const t0 = performance.now();
+    evaluate(defaultConfig());
+    console.log(`evaluate: ${(performance.now() - t0).toFixed(0)} ms`);
+  });
   it('100-module evaluation stays finite', () => {
     const c = defaultConfig();
     c.swarm.count = 100;
@@ -4216,7 +4237,7 @@ export const RANGE_OPTIONS: Range[] = [
 - [ ] **Step 5: Run tests and typecheck**
 
 Run: `npm test && npm run typecheck`
-Expected: PASS. The tornado and 100-module tests take several seconds each; that is expected.
+Expected: PASS. The tornado and 100-module tests take several seconds each; that is expected. Note the printed `evaluate` time and apply the Performance budget rule for the Pareto default.
 
 - [ ] **Step 6: Commit**
 
@@ -4480,7 +4501,7 @@ Load the `frontend-design` skill before this task.
 - Create: `src/state/store.ts`, `src/state/useAnimationLoop.ts`, `src/state/useAnnualRunner.ts`, `src/state/useOptimizer.ts`
 - Create: `src/workers/protocol.ts`, `src/workers/annual.worker.ts`, `src/workers/optimizer.worker.ts`
 - Create: `src/ui/format.ts`, `src/ui/controls.tsx`, `src/ui/panelDefs.ts`, `src/ui/ParamPanels.tsx`, `src/ui/Header.tsx`, `src/ui/KpiStrip.tsx`, `src/ui/Tabs.tsx`, `src/ui/MainContent.tsx`
-- Test: `src/state/store.test.ts`, `src/ui/format.test.ts`, `src/ui/panelDefs.test.ts`
+- Test: `src/state/store.test.ts`, `src/state/store.persist.test.ts`, `src/ui/format.test.ts`, `src/ui/panelDefs.test.ts`
 
 **Interfaces:**
 - Consumes: the model layer.
@@ -4521,6 +4542,33 @@ describe('store', () => {
     expect(st().notice).toMatch(/name/);
     st().deleteScenario('Big battery');
     expect(st().scenarios['Big battery']).toBeUndefined();
+  });
+});
+```
+
+`src/state/store.persist.test.ts` (a separate file so the storage stub is installed before the store module loads):
+```ts
+import { describe, it, expect, beforeAll } from 'vitest';
+
+const mem = new Map<string, string>();
+
+beforeAll(() => {
+  (globalThis as { localStorage?: unknown }).localStorage = {
+    getItem: (k: string) => mem.get(k) ?? null,
+    setItem: (k: string, v: string) => void mem.set(k, v),
+    removeItem: (k: string) => void mem.delete(k),
+  };
+});
+
+describe('store persistence', () => {
+  it('persists only valid configs', async () => {
+    const { useFleet } = await import('./store');
+    useFleet.getState().update('battery.kwh', 12);
+    expect(JSON.parse(mem.get('fleet.current.v1')!).battery.kwh).toBe(12);
+    useFleet.getState().update('name', '');
+    expect(JSON.parse(mem.get('fleet.current.v1')!).name).toBe('Baseline 20-module swarm');
+    useFleet.getState().saveScenario('x');
+    expect(useFleet.getState().notice).toMatch(/invalid/);
   });
 });
 ```
@@ -4595,7 +4643,7 @@ Expected: FAIL, cannot resolve modules.
 `src/state/store.ts`:
 ```ts
 import { create } from 'zustand';
-import { SimConfig, setPath, parseConfig } from '../model/config';
+import { ConfigSchema, SimConfig, setPath, parseConfig } from '../model/config';
 import { defaultConfig, applyPreset, PresetKind } from '../model/defaults';
 import type { AnnualResult } from '../model/annual';
 import type { Econ } from '../model/economics';
@@ -4689,6 +4737,10 @@ export const useFleet = create<FleetStore>((set, get) => ({
       set({ notice: 'Give the scenario a name before saving.' });
       return;
     }
+    if (!ConfigSchema.safeParse(get().cfg).success) {
+      set({ notice: 'This scenario has invalid inputs and was not saved.' });
+      return;
+    }
     set({ scenarios: { ...get().scenarios, [n]: get().cfg }, notice: `Saved "${n}".` });
   },
   loadScenario: (name) => {
@@ -4703,8 +4755,9 @@ export const useFleet = create<FleetStore>((set, get) => ({
   setNotice: (notice) => set({ notice }),
 }));
 
+// Only valid configs are persisted, so a reload never discards the last good scenario.
 useFleet.subscribe((s, prev) => {
-  if (s.cfg !== prev.cfg) writeJSON(CURRENT_KEY, s.cfg);
+  if (s.cfg !== prev.cfg && ConfigSchema.safeParse(s.cfg).success) writeJSON(CURRENT_KEY, s.cfg);
   if (s.scenarios !== prev.scenarios) writeJSON(SCENARIOS_KEY, s.scenarios);
 });
 ```
@@ -5250,6 +5303,11 @@ export const PANEL_DEFS: PanelDef[] = [
   },
 ];
 
+/** Slider bounds in config units, used to clamp optimizer range inputs. */
+export const SLIDER_BOUNDS: Record<string, [number, number]> = Object.fromEntries(
+  PANEL_DEFS.flatMap((p) => p.items.flatMap((i) => (i.kind === 'slider' ? [[i.path, [i.min / (i.scale ?? 1), i.max / (i.scale ?? 1)]] as [string, [number, number]]] : []))),
+);
+
 export const PARAM_LABELS: Record<string, string> = Object.fromEntries(
   PANEL_DEFS.flatMap((p) => p.items.flatMap((i) => (i.kind === 'preset' ? [] : [[i.path, i.label] as [string, string]]))),
 );
@@ -5321,7 +5379,7 @@ export function ParamPanels() {
 ```tsx
 import { useRef, useState } from 'react';
 import { useFleet } from '../state/store';
-import { parseConfig } from '../model/config';
+import { ConfigSchema, parseConfig } from '../model/config';
 
 type Theme = 'auto' | 'light' | 'dark';
 
@@ -5343,6 +5401,11 @@ export function Header() {
   };
 
   const exportJson = () => {
+    const check = ConfigSchema.safeParse(cfg);
+    if (!check.success) {
+      st().setNotice(`Fix these inputs before exporting: ${check.error.issues.map((i) => i.path.join('.')).join(', ')}`);
+      return;
+    }
     const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -6394,7 +6457,7 @@ export function FlowerSvg({ cfg, sunElevationDeg, sunAzimuthDeg, stowed }: { cfg
 
 `src/ui/tabs/ModuleTab.tsx`:
 ```tsx
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { ResponsiveContainer, Sankey, Tooltip } from 'recharts';
 import { useFleet } from '../../state/store';
 import { runLiveDay } from '../../model/live';
@@ -6419,7 +6482,7 @@ function SankeyNode({ x, y, width, height, payload }: NodeProps) {
 }
 
 export function ModuleTab() {
-  const cfg = useFleet((s) => s.cfg);
+  const cfg = useDeferredValue(useFleet((s) => s.cfg));
   const [doy, setDoy] = useState(172);
   const [hour, setHour] = useState(12);
   const sim = useMemo(() => runLiveDay(cfg, doy), [cfg, doy]);
@@ -6495,7 +6558,7 @@ If TypeScript rejects the `node` render prop's parameter type, type it as `(p: u
 
 `src/ui/tabs/EnergyTab.tsx`:
 ```tsx
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState } from 'react';
 import { ResponsiveContainer, ComposedChart, LineChart, Area, Line, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { useFleet } from '../../state/store';
 import { runLiveDay } from '../../model/live';
@@ -6508,7 +6571,7 @@ import { TOOLTIP_STYLE, AXIS_PROPS, GRID_PROPS } from '../chartTheme';
 const HOUR_TICKS = [0, 3, 6, 9, 12, 15, 18, 21, 24];
 
 export function EnergyTab() {
-  const cfg = useFleet((s) => s.cfg);
+  const cfg = useDeferredValue(useFleet((s) => s.cfg));
   const annual = useFleet((s) => s.annual);
   const [doy, setDoy] = useState(172);
   const sim = useMemo(() => runLiveDay(cfg, doy), [cfg, doy]);
@@ -6957,7 +7020,7 @@ import { useOptimizer } from '../../state/useOptimizer';
 import { AXIS_OPTIONS, RANGE_OPTIONS, METRICS, metricValue, applyAxis, type Metric, type Evaluation } from '../../model/optimizer';
 import { setPath } from '../../model/config';
 import { PRESET_LISTS } from '../../model/defaults';
-import { PARAM_LABELS } from '../panelDefs';
+import { PARAM_LABELS, SLIDER_BOUNDS } from '../panelDefs';
 import { fmtCompact, fmtMonths, fmtNum, fmtUsd, fmtUsdCompact } from '../format';
 import { AXIS_PROPS, GRID_PROPS } from '../chartTheme';
 
@@ -7134,7 +7197,16 @@ function ParetoPanel() {
     useFleet.getState().replace(c);
     useFleet.getState().setNotice('Loaded the selected configuration into the sliders.');
   };
-  const setRange = (k: number, patch: Partial<(typeof ranges)[number]>) => setRanges((rs) => rs.map((x, j) => (j === k ? { ...x, ...patch } : x)));
+  const setRange = (k: number, patch: Partial<(typeof ranges)[number]>) =>
+    setRanges((rs) =>
+      rs.map((x, j) => {
+        if (j !== k) return x;
+        const next = { ...x, ...patch };
+        const [lo, hi] = SLIDER_BOUNDS[x.path] ?? [-Infinity, Infinity];
+        const clamp = (v: number) => (Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : x.min);
+        return { ...next, min: clamp(next.min), max: clamp(next.max) };
+      }),
+    );
 
   return (
     <section className="card">

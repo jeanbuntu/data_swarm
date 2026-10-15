@@ -5,6 +5,7 @@ import { ModuleTab } from './tabs/ModuleTab';
 import { EnergyTab } from './tabs/EnergyTab';
 import { EconomicsTab } from './tabs/EconomicsTab';
 import { InvestorView } from './InvestorView';
+import { OptimizerTab } from './tabs/OptimizerTab';
 
 function Pending({ what }: { what: string }) {
   return (
@@ -24,6 +25,8 @@ function renderTab(tab: TabId) {
       return <EnergyTab />;
     case 'economics':
       return <EconomicsTab />;
+    case 'optimizer':
+      return <OptimizerTab />;
     default:
       return <Pending what="This view" />;
   }

@@ -36,6 +36,7 @@ export function VariantsTable() {
                 <td>{v.name}</td>
                 <td>
                   {v.config.compute.cards} cards, {v.config.battery.kwh} kWh, {POLICY[v.config.compute.policy]}
+                  {v.config.comms.hubMode ? `, 1 Starlink per ${v.config.comms.modulesPerTerminal} nodes (${v.config.comms.planId})` : ''}
                   {v.config.compute.policy === 'firm' ? ` ${v.config.compute.firmComputeW} W` : ''}
                 </td>
                 <td className="num">{fmtUsd(v.metrics.benchmarkFirm, 2)}</td>

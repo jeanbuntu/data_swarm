@@ -1,5 +1,5 @@
 import type { SimConfig } from './config';
-import { derive, Derived } from './derive';
+import { derive, Derived, moduleRole, NodeParams } from './derive';
 import { createEnvironment, Env } from './environment';
 import { swarmParams, initSwarm, stepSwarm, SwarmParams, SwarmState } from './swarm';
 import { poaIrradiance, pvPowerW } from './solar';
@@ -42,6 +42,9 @@ export interface LiveSim {
   dtS: number;
   swarm: SwarmState;
   soc: number[];
+  node: NodeParams[];
+  /** TFLOP delivered by each module so far today. */
+  moduleTflop: number[];
   flows: StepFlows[];
   jobs: JobState;
   history: LivePoint[];
@@ -63,7 +66,9 @@ export function createLiveSim(cfg: SimConfig, doy: number, startSocFrac = 0.5): 
     rng: mulberry32(hashSeed(cfg.seed, doy, 7)),
     doy, t: t0, dayStart: t0, endT: t0 + 86400000, dtS: LIVE_DT_S,
     swarm: initSwarm(params),
-    soc: new Array(cfg.swarm.count).fill(cfg.battery.kwh * startSocFrac),
+    node: Array.from({ length: cfg.swarm.count }, (_, i) => d.nodes[moduleRole(cfg, i)]),
+    soc: Array.from({ length: cfg.swarm.count }, (_, i) => d.nodes[moduleRole(cfg, i)].batteryKwh * startSocFrac),
+    moduleTflop: new Array(cfg.swarm.count).fill(0),
     flows: [],
     jobs: initJobs(t0),
     history: [],
@@ -95,7 +100,7 @@ export function stepLive(s: LiveSim): void {
     ghiSum += ghi;
     const pvW = pvPowerW(poaIrradiance(ghi, sun, cfg.hull.tracking, cfg.hull.fixedTiltDeg, cfg.hull.maxTiltDeg, s.doy), area, cfg);
     pvs.push(pvW);
-    pass1.push(dispatch(cfg, d, { pvW, propulsionW: out.propulsionW[i], trackingActive: tracking, socKwh: s.soc[i], dtH }));
+    pass1.push(dispatch(cfg, d, { pvW, propulsionW: out.propulsionW[i], trackingActive: tracking, socKwh: s.soc[i], dtH }, s.node[i]));
   }
   const linkShare = d.terminals / n;
   const caps = pass1.map((f) => ({
@@ -110,9 +115,12 @@ export function stepLive(s: LiveSim): void {
     return dispatch(cfg, d, {
       pvW: pvs[i], propulsionW: out.propulsionW[i], trackingActive: tracking, socKwh: s.soc[i], dtH,
       computeCapElecW: d.tflopsPerElecW > 0 ? rate / d.tflopsPerElecW : 0,
-    });
+    }, s.node[i]);
   });
-  s.flows.forEach((f, i) => { s.soc[i] = f.socKwh; });
+  s.flows.forEach((f, i) => {
+    s.soc[i] = f.socKwh;
+    s.moduleTflop[i] += f.tflops * dtS;
+  });
   const potential = pass1.reduce((a, f) => a + f.tflops, 0);
   const down = caps.reduce((a, c) => a + c.downMbps, 0);
   const up = caps.reduce((a, c) => a + c.upMbps, 0);
@@ -132,7 +140,7 @@ export function stepLive(s: LiveSim): void {
     chargeW: avg((f) => f.chargeW),
     dischargeW: avg((f) => f.dischargeW),
     curtailedW: avg((f) => f.curtailedW),
-    socFrac: cfg.battery.kwh > 0 ? s.soc.reduce((a, b) => a + b, 0) / n / cfg.battery.kwh : 0,
+    socFrac: totalCapKwh(s) > 0 ? s.soc.reduce((a, b) => a + b, 0) / totalCapKwh(s) : 0,
     tflops: s.flows.reduce((a, f) => a + f.tflops, 0),
     binding: s.binding,
   });
@@ -141,6 +149,8 @@ export function stepLive(s: LiveSim): void {
   s.t += dtS * 1000;
   s.done = s.t >= s.endT;
 }
+
+const totalCapKwh = (s: LiveSim) => s.node.reduce((a, p) => a + p.batteryKwh, 0);
 
 export function runLiveDay(cfg: SimConfig, doy: number): LiveSim {
   const s = createLiveSim(cfg, doy);

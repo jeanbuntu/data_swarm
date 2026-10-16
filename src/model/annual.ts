@@ -1,6 +1,6 @@
 import type { SimConfig } from './config';
 import { payOverage } from './defaults';
-import { derive, Derived } from './derive';
+import { derive, Derived, moduleRole, NodeParams } from './derive';
 import { dispatch, StepFlows } from './module';
 import { createEnvironment, dayTypeProbs, DayType, Env } from './environment';
 import { swarmParams, initSwarm, stepSwarm, SwarmParams, SwarmState } from './swarm';
@@ -71,7 +71,9 @@ interface Ctx {
   params: SwarmParams;
   dtS: number;
   idx: number[];
-  scale: number;
+  /** Number of real modules each sampled module stands for. */
+  weight: number[];
+  node: NodeParams[];
   demandTflops: number;
 }
 
@@ -84,7 +86,7 @@ function simulateDay(
   isThrottled: () => boolean,
   addGB: (perTerminalGB: number) => void,
 ): DaySummary {
-  const { cfg, d, params, dtS, idx, scale } = ctx;
+  const { cfg, d, params, dtS, idx, weight, node } = ctx;
   const dtH = dtS / 3600;
   const day: DaySummary = { ...emptyTotals(), doy, weight: 1, ghiKwhM2: 0, offshoreKm: 0 };
   const t0 = dayStartMs(doy);
@@ -103,16 +105,17 @@ function simulateDay(
     const pass1: StepFlows[] = [];
     let potential = 0;
     let online = 0;
-    for (const i of idx) {
+    idx.forEach((i, j) => {
+      const scale = weight[j];
       const pos = sw.modules[i].pos;
       const poa = poaIrradiance(env.ghi(t, pos.x, pos.y), sun, cfg.hull.tracking, cfg.hull.fixedTiltDeg, cfg.hull.maxTiltDeg, doy);
       const pvW = pvPowerW(poa, area, cfg);
       pvs.push(pvW);
-      const f = dispatch(cfg, d, { pvW, propulsionW: out.propulsionW[i], trackingActive: tracking, socKwh: soc[i], dtH });
+      const f = dispatch(cfg, d, { pvW, propulsionW: out.propulsionW[i], trackingActive: tracking, socKwh: soc[i], dtH }, node[i]);
       pass1.push(f);
       potential += f.tflops * scale;
       if (f.online) online += scale;
-    }
+    });
     const throttled = isThrottled();
     const termOnline = d.terminals * Math.min(1, online / cfg.swarm.count);
     const down = termOnline * (throttled ? cfg.comms.throttleDownMbps : cfg.comms.downMbps);
@@ -121,11 +124,12 @@ function simulateDay(
     const frac = potential > 0 ? agg.tflops / potential : 0;
 
     idx.forEach((i, j) => {
+      const scale = weight[j];
       let f = pass1[j];
       if (frac < 1 - 1e-9) {
         f = dispatch(cfg, d, {
           pvW: pvs[j], propulsionW: out.propulsionW[i], trackingActive: tracking, socKwh: soc[i], dtH, computeCapElecW: f.computeElecW * frac,
-        });
+        }, node[i]);
       }
       soc[i] = f.socKwh;
       const e = (w: number) => (w * dtH * scale) / 1000;
@@ -157,18 +161,35 @@ function simulateDay(
   return day;
 }
 
+/** Picks the modules to simulate. Hub clusters always sample at least one master, with weights by role. */
+export function sampleModules(cfg: SimConfig, n: number, sample: number): { idx: number[]; weight: number[] } {
+  if (sample >= n) return { idx: Array.from({ length: n }, (_, i) => i), weight: new Array(n).fill(1) };
+  const even = (list: number[], k: number) => Array.from({ length: k }, (_, j) => list[Math.floor((j * list.length) / k)]);
+  const all = Array.from({ length: n }, (_, i) => i);
+  const masters = all.filter((i) => moduleRole(cfg, i) === 'master');
+  const followers = all.filter((i) => moduleRole(cfg, i) === 'follower');
+  if (!masters.length || !followers.length) return { idx: even(all, sample), weight: new Array(sample).fill(n / sample) };
+  const sM = Math.min(masters.length, Math.max(1, Math.round((sample * masters.length) / n)), sample - 1);
+  const sF = sample - sM;
+  return {
+    idx: [...even(masters, sM), ...even(followers, sF)],
+    weight: [...new Array(sM).fill(masters.length / sM), ...new Array(sF).fill(followers.length / sF)],
+  };
+}
+
 export function runAnnual(cfg: SimConfig, mode: 'full' | 'representative', opts: { sampleModules?: number } = {}): AnnualResult {
   const d = derive(cfg);
   const params = swarmParams(cfg, d);
   const n = cfg.swarm.count;
   const sample = Math.max(1, Math.min(n, opts.sampleModules ?? n));
-  const idx = Array.from({ length: sample }, (_, k) => Math.floor((k * n) / sample));
-  const ctx: Ctx = { cfg, d, params, dtS: 900, idx, scale: n / sample, demandTflops: (cfg.jobs.arrivalsPerHour / 3600) * d.mix.meanTflop };
+  const { idx, weight } = sampleModules(cfg, n, sample);
+  const node = Array.from({ length: n }, (_, i) => d.nodes[moduleRole(cfg, i)]);
+  const ctx: Ctx = { cfg, d, params, dtS: 900, idx, weight, node, demandTflops: (cfg.jobs.arrivalsPerHour / 3600) * d.mix.meanTflop };
   const capGB = cfg.comms.planCapGB;
   const paying = payOverage(cfg);
   const days: DaySummary[] = [];
   const gbMonthly = new Array(12).fill(0);
-  const startSoc = () => new Array(n).fill(cfg.battery.kwh * 0.5);
+  const startSoc = () => node.map((p) => p.batteryKwh * 0.5);
 
   if (mode === 'full') {
     const env = createEnvironment(cfg);
@@ -215,7 +236,7 @@ export function runAnnual(cfg: SimConfig, mode: 'full' | 'representative', opts:
 
   const totals = emptyTotals();
   for (const day of days) addInto(totals, day, day.weight);
-  const usable = cfg.battery.kwh * cfg.battery.dod;
+  const usable = (node.reduce((a, p) => a + p.batteryKwh, 0) / n) * cfg.battery.dod;
   return {
     mode,
     days,

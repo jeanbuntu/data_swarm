@@ -37,7 +37,13 @@ export function ModuleTab() {
     ['Peak solar', `${fmtNum(d.peakPvW / 1000, 2)} kW`],
     ['Compute efficiency incl. overhead', `${fmtNum(d.tflopsPerElecW, 2)} TFLOPS/W`],
     ['Max compute power', `${fmtNum(d.maxComputeElecW)} W`],
-    ['Essential load (avionics, Starlink share)', `${fmtNum(d.essentialW, 1)} W`],
+    ...(cfg.comms.hubMode
+      ? ([
+          ['Master node essential load (Starlink, cluster computer, radio)', `${fmtNum(d.nodes.master.essentialW, 1)} W`],
+          ['Follower node essential load (controller, radio)', `${fmtNum(d.nodes.follower.essentialW, 1)} W`],
+          ['Follower battery', `${fmtNum(d.nodes.follower.batteryKwh, 1)} kWh`],
+        ] as [string, string][])
+      : ([['Essential load (avionics, Starlink share)', `${fmtNum(d.essentialW, 1)} W`]] as [string, string][])),
     ['Mass vs displacement', `${fmtNum(d.massKg)} kg of ${fmtNum(d.displacementKg)} kg`],
     ['Pod volume needed vs available', `${fmtNum(d.podNeedL)} L of ${fmtNum(cfg.hull.podVolumeL)} L`],
     ['Max speed through water', `${fmtNum(d.maxWaterSpeedMs, 2)} m/s`],

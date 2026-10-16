@@ -3,7 +3,7 @@
  * yearly margin after capital when priced a fixed amount below the benchmark. Run: npm run variants
  */
 import { writeFileSync } from 'node:fs';
-import { VARIANT_SPECS, GRIDS, variantBase, searchVariant } from '../src/tools/variants';
+import { VARIANT_SPECS, GRIDS, HUB_GRID, HUB_CLUSTER_SIZE, variantBase, searchVariant } from '../src/tools/variants';
 import { runAnnual } from '../src/model/annual';
 import { economics } from '../src/model/economics';
 import { utilization } from '../src/model/metrics';
@@ -14,11 +14,12 @@ const UNDERCUT_USD = 0.05;
 const out = [];
 for (const spec of VARIANT_SPECS) {
   const t0 = Date.now();
-  const base = variantBase(spec.accelerator, spec.benchmark, UNDERCUT_USD);
-  const { config } = searchVariant(base, GRIDS[spec.accelerator]);
+  const base = variantBase(spec.accelerator, spec.benchmark, UNDERCUT_USD, spec.hub);
+  const { config } = searchVariant(base, spec.hub ? HUB_GRID : GRIDS[spec.accelerator]);
   const accel = ACCELERATORS.find((a) => a.id === spec.accelerator)!;
   const benchName = spec.benchmark === 'gas' ? 'gas data center' : 'cloud rental';
-  const name = `${accel.name.replace(/^NVIDIA /, '').replace(/ \(.*\)$/, '')} vs ${benchName}, $${UNDERCUT_USD.toFixed(2)} under`;
+  const hubLabel = spec.hub ? `, hub cluster (1 per ${HUB_CLUSTER_SIZE})` : '';
+  const name = `${accel.name.replace(/^NVIDIA /, '').replace(/ \(.*\)$/, '')}${hubLabel} vs ${benchName}, $${UNDERCUT_USD.toFixed(2)} under`;
   const cfg = { ...config, name };
   const annual = runAnnual(cfg, 'full');
   const e = economics(cfg, annual);

@@ -1,5 +1,5 @@
 import type { SimConfig } from './config';
-import type { Derived } from './derive';
+import type { Derived, NodeParams } from './derive';
 
 export interface DispatchInput {
   pvW: number;
@@ -34,10 +34,10 @@ export interface StepFlows {
  * - firm: firm compute from solar then battery (down to the reserve), battery charges, spot compute uses surplus solar.
  * - max: compute from solar then battery (down to the reserve), battery charges with what is left.
  */
-export function dispatch(cfg: SimConfig, d: Derived, inp: DispatchInput): StepFlows {
+export function dispatch(cfg: SimConfig, d: Derived, inp: DispatchInput, node: NodeParams = d.nodes.uniform): StepFlows {
   const etaC = Math.sqrt(cfg.battery.rte);
   const etaD = etaC;
-  const cap = cfg.battery.kwh;
+  const cap = node.batteryKwh;
   const dtH = inp.dtH;
   let soc = Math.min(cap, Math.max(0, inp.socKwh));
   let pv = Math.max(0, inp.pvW);
@@ -68,8 +68,8 @@ export function dispatch(cfg: SimConfig, d: Derived, inp: DispatchInput): StepFl
     charge += c;
   };
 
-  const essentialWant = d.essentialW + (inp.trackingActive ? cfg.loads.actuatorW : 0) + Math.max(0, inp.propulsionW);
-  const served = draw(essentialWant, d.socMinKwh);
+  const essentialWant = node.essentialW + (inp.trackingActive ? cfg.loads.actuatorW : 0) + Math.max(0, inp.propulsionW);
+  const served = draw(essentialWant, node.socMinKwh);
   const unmetW = Math.max(0, essentialWant - served);
   const online = unmetW < 1e-6;
   const capW = Math.max(0, Math.min(d.maxComputeElecW, inp.computeCapElecW ?? Infinity));
@@ -82,12 +82,12 @@ export function dispatch(cfg: SimConfig, d: Derived, inp: DispatchInput): StepFl
       spot = Math.min(pv, capW);
       pv -= spot;
     } else if (cfg.compute.policy === 'firm') {
-      firm = draw(Math.min(d.firmComputeElecW, capW), d.reserveKwh);
+      firm = draw(Math.min(d.firmComputeElecW, capW), node.reserveKwh);
       chargeFromPv();
       spot = Math.min(pv, capW - firm);
       pv -= spot;
     } else {
-      spot = draw(capW, d.reserveKwh);
+      spot = draw(capW, node.reserveKwh);
     }
   }
   chargeFromPv();

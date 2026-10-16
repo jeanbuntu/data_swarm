@@ -3,8 +3,9 @@ import { variantBase, candidateConfigs, searchVariant, VARIANT_SPECS } from './v
 import { evaluate } from '../model/optimizer';
 
 describe('pricing variants', () => {
-  it('covers four accelerators against both benchmarks', () => {
-    expect(VARIANT_SPECS).toHaveLength(8);
+  it('covers four accelerators against both benchmarks, plus L4 hub clusters', () => {
+    expect(VARIANT_SPECS).toHaveLength(10);
+    expect(VARIANT_SPECS.filter((v) => v.hub).map((v) => v.id)).toEqual(['l4-gas-hub', 'l4-cloud-hub']);
     expect(new Set(VARIANT_SPECS.map((v) => v.accelerator))).toEqual(new Set(['l4', 'l40s', 'h100-sxm', 'b200']));
     expect(new Set(VARIANT_SPECS.map((v) => v.benchmark))).toEqual(new Set(['gas', 'cloud']));
   });
@@ -32,5 +33,13 @@ describe('pricing variants', () => {
       .map((e) => e.marginAfterCapitalYear);
     expect(best.evaluation.marginAfterCapitalYear).toBeCloseTo(Math.max(...scores), 6);
     expect(best.evaluation.feasible).toBe(true);
+  });
+  it('hub variants use one Performance terminal per 10 nodes and search the plan', () => {
+    const base = variantBase('l4', 'cloud', 0.05, true);
+    expect(base.comms).toMatchObject({ hubMode: true, modulesPerTerminal: 10, terminalId: 'performance-gen3' });
+    const grid = { cards: [2], batteries: [8], firmW: [200], policies: ['firm'] as const, plans: ['gp-1tb', 'gp-2tb'] };
+    const c = candidateConfigs(base, grid);
+    expect(c.map((x) => x.comms.planId)).toEqual(['gp-1tb', 'gp-2tb']);
+    expect(c[1].comms.planUsdPerMonth).toBe(2150);
   });
 });

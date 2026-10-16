@@ -78,8 +78,21 @@ describe('config', () => {
     const r = parseConfig(old);
     expect(r.ok).toBe(true);
     if (r.ok) {
-      expect(r.config.version).toBe(2);
+      expect(r.config.version).toBe(3);
       expect(r.config.market).toEqual(defaultConfig().market);
     }
+  });
+  it('migrates version 2 scenarios by adding hub-cluster settings, off by default', () => {
+    const old = JSON.parse(JSON.stringify(defaultConfig()));
+    old.version = 2;
+    delete old.comms.hubMode;
+    delete old.loads.masterAvionicsW;
+    delete old.loads.followerAvionicsW;
+    delete old.battery.followerExtraKwh;
+    delete old.econ.masterAvionicsUsd;
+    delete old.econ.followerAvionicsUsd;
+    const r = parseConfig(old);
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.config).toEqual(defaultConfig());
   });
 });

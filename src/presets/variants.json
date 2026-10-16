@@ -5,7 +5,7 @@
     "accelerator": "l4",
     "benchmark": "gas",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "L4 vs gas data center, $0.05 under",
       "seed": 42,
       "hull": {
@@ -41,7 +41,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "l4",
@@ -58,7 +59,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -75,6 +78,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -136,6 +140,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -192,7 +198,7 @@
     "accelerator": "l4",
     "benchmark": "cloud",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "L4 vs cloud rental, $0.05 under",
       "seed": 42,
       "hull": {
@@ -228,7 +234,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "l4",
@@ -245,7 +252,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -262,6 +271,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -323,6 +333,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -379,7 +391,7 @@
     "accelerator": "l40s",
     "benchmark": "gas",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "L40S vs gas data center, $0.05 under",
       "seed": 42,
       "hull": {
@@ -415,7 +427,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "l40s",
@@ -432,7 +445,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -449,6 +464,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -510,6 +526,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -566,7 +584,7 @@
     "accelerator": "l40s",
     "benchmark": "cloud",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "L40S vs cloud rental, $0.05 under",
       "seed": 42,
       "hull": {
@@ -602,7 +620,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "l40s",
@@ -619,7 +638,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -636,6 +657,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -697,6 +719,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -753,7 +777,7 @@
     "accelerator": "h100-sxm",
     "benchmark": "gas",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "H100 SXM vs gas data center, $0.05 under",
       "seed": 42,
       "hull": {
@@ -789,7 +813,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "h100-sxm",
@@ -806,7 +831,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -823,6 +850,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -884,6 +912,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -940,7 +970,7 @@
     "accelerator": "h100-sxm",
     "benchmark": "cloud",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "H100 SXM vs cloud rental, $0.05 under",
       "seed": 42,
       "hull": {
@@ -976,7 +1006,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "h100-sxm",
@@ -993,7 +1024,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -1010,6 +1043,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -1071,6 +1105,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -1127,7 +1163,7 @@
     "accelerator": "b200",
     "benchmark": "gas",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "B200 HGX vs gas data center, $0.05 under",
       "seed": 42,
       "hull": {
@@ -1163,7 +1199,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "b200",
@@ -1180,7 +1217,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -1197,6 +1236,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -1258,6 +1298,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -1314,7 +1356,7 @@
     "accelerator": "b200",
     "benchmark": "cloud",
     "config": {
-      "version": 2,
+      "version": 3,
       "name": "B200 HGX vs cloud rental, $0.05 under",
       "seed": 42,
       "hull": {
@@ -1350,7 +1392,8 @@
         "whPerKg": 140,
         "rte": 0.93,
         "cycleLife": 8000,
-        "dod": 0.9
+        "dod": 0.9,
+        "followerExtraKwh": 0
       },
       "compute": {
         "presetId": "b200",
@@ -1367,7 +1410,9 @@
       },
       "loads": {
         "avionicsW": 15,
-        "actuatorW": 10
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
       },
       "comms": {
         "terminalId": "mini",
@@ -1384,6 +1429,7 @@
         "overageUsdPerGB": 2,
         "buyOverage": false,
         "modulesPerTerminal": 1,
+        "hubMode": false,
         "radioW": 5,
         "radioUsd": 300,
         "radioRangeM": 2000
@@ -1445,6 +1491,8 @@
         "mpptUsdPerW": 0.074,
         "gnssUsd": 184.22,
         "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
         "hostUsd": 1500,
         "batteryIntegrationUplift": 1.3,
         "integrationPct": 0.25,
@@ -1493,6 +1541,392 @@
       "capexTotal": 1935316.6760455999,
       "binding": "power",
       "cardUtilization": 0.11830494240420955
+    }
+  },
+  {
+    "id": "l4-gas-hub",
+    "name": "L4, hub cluster (1 per 10) vs gas data center, $0.05 under",
+    "accelerator": "l4",
+    "benchmark": "gas",
+    "config": {
+      "version": 3,
+      "name": "L4, hub cluster (1 per 10) vs gas data center, $0.05 under",
+      "seed": 42,
+      "hull": {
+        "sideM": 1.52,
+        "draftM": 0.6,
+        "massKg": 150,
+        "podVolumeL": 120,
+        "podMassKg": 40,
+        "petalCount": 8,
+        "petalLengthM": 1,
+        "petalWidthM": 0.9,
+        "tracking": "yaw",
+        "fixedTiltDeg": 25,
+        "maxTiltDeg": 60,
+        "dragCd": 1
+      },
+      "panel": {
+        "presetId": "csi-tophiku6",
+        "efficiency": 0.234,
+        "usdPerW": 0.132,
+        "kgPerM2": 10.5,
+        "tempCoeffPerC": -0.0029
+      },
+      "pv": {
+        "mpptEff": 0.97,
+        "waterTempC": 17,
+        "cellTempRiseC": 20
+      },
+      "battery": {
+        "presetId": "bnef-lfp-pack",
+        "kwh": 4,
+        "usdPerKwh": 81,
+        "whPerKg": 140,
+        "rte": 0.93,
+        "cycleLife": 8000,
+        "dod": 0.9,
+        "followerExtraKwh": 0
+      },
+      "compute": {
+        "presetId": "l4",
+        "cards": 1,
+        "tdpW": 72,
+        "denseTflops": 121,
+        "priceUsd": 3995,
+        "massKg": 0.5,
+        "volumeL": 0.5,
+        "hostW": 40,
+        "coolingOverhead": 0.05,
+        "policy": "firm",
+        "firmComputeW": 0
+      },
+      "loads": {
+        "avionicsW": 15,
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
+      },
+      "comms": {
+        "terminalId": "performance-gen3",
+        "terminalW": 87.5,
+        "terminalUsd": 1849,
+        "terminalMassKg": 5.2,
+        "downMbps": 100,
+        "upMbps": 15,
+        "planId": "gp-1tb",
+        "planUsdPerMonth": 1150,
+        "planCapGB": 1000,
+        "throttleDownMbps": 1,
+        "throttleUpMbps": 0.5,
+        "overageUsdPerGB": 2,
+        "buyOverage": false,
+        "modulesPerTerminal": 10,
+        "hubMode": true,
+        "radioW": 5,
+        "radioUsd": 300,
+        "radioRangeM": 2000
+      },
+      "propulsion": {
+        "thrusterId": "t200",
+        "count": 2,
+        "thrustN": 51.5,
+        "maxElecW": 390,
+        "usd": 230,
+        "massKg": 0.427,
+        "propEff": 0.4
+      },
+      "env": {
+        "originLat": 33.05,
+        "originLon": -118.95,
+        "currentMs": 0.15,
+        "currentHeadingDeg": 141,
+        "currentVariabilityMs": 0.12,
+        "tidalMs": 0.08,
+        "windMeanMs": 5,
+        "stowWindMs": 13.9,
+        "cloudCellKm": 30,
+        "cloudCellAmp": 0.15,
+        "cloudDriftMs": 5.7,
+        "cloudDriftHeadingDeg": 135,
+        "dayVariability": 1,
+        "marineLayerStrength": 1,
+        "disturbanceMs": 0.02
+      },
+      "swarm": {
+        "count": 20,
+        "spacingM": 150,
+        "toleranceM": 40,
+        "breakawayM": 300,
+        "strategy": "station",
+        "cruiseMs": 0.3,
+        "horizonH": 3,
+        "replanMin": 30,
+        "minOffshoreKm": 20,
+        "maxOffshoreKm": 150
+      },
+      "jobs": {
+        "arrivalsPerHour": 1500,
+        "mixInference": 0.95,
+        "mixTraining": 0.04,
+        "mixDataHeavy": 0.01,
+        "checkpointMin": 15
+      },
+      "econ": {
+        "firmUsdPerGpuH": 0.707,
+        "spotUsdPerGpuH": 0.44,
+        "slaTarget": 0.99,
+        "slaPenaltyMultiple": 1,
+        "hullUsd": 10000,
+        "podUsd": 3000,
+        "heatExchangerUsd": 1000,
+        "petalUsdPerM2": 250,
+        "mpptUsdPerW": 0.074,
+        "gnssUsd": 184.22,
+        "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
+        "hostUsd": 1500,
+        "batteryIntegrationUplift": 1.3,
+        "integrationPct": 0.25,
+        "contingencyPct": 0.15,
+        "sparesPct": 0.1,
+        "deploymentVesselDays": 3,
+        "vesselDayUsd": 15000,
+        "maintenanceVisitsPerYear": 2,
+        "visitUsd": 25000,
+        "insurancePct": 0.03,
+        "moduleLossRate": 0.05,
+        "acceleratorRefreshYears": 4,
+        "discountRate": 0.12,
+        "horizonYears": 7
+      },
+      "market": {
+        "priceMode": "undercut",
+        "benchmark": "gas",
+        "undercutUsd": 0.05,
+        "gasUsdPerMMBtu": 3.48,
+        "heatRateBtuPerKwh": 8295,
+        "gasOmUsdPerMWh": 10.2,
+        "genCapexUsdPerKw": 2262,
+        "genLifeYears": 20,
+        "pue": 1.2,
+        "facilityUsdPerKwMonth": 195.94,
+        "serverOverheadW": 100,
+        "serverOverheadUsd": 2500,
+        "gpuLifeYears": 5,
+        "benchmarkUtilization": 0.8,
+        "operatorMargin": 0.25,
+        "competitorWacc": 0.0933
+      }
+    },
+    "metrics": {
+      "benchmarkFirm": 0.39194823643610593,
+      "priceFirm": 0.34194823643610595,
+      "priceSpot": 0.1939281810917774,
+      "costPerGpuHour": 7.900784229070408,
+      "marginPerGpuHour": -7.70685604797863,
+      "marginAfterCapitalYear": -311688.1752181657,
+      "grossMarginYear": -127753.59571738406,
+      "paybackMonths": null,
+      "pflopHours": 4893.599798232876,
+      "gpuHours": 40442.97353911468,
+      "capexTotal": 795263.8885456,
+      "binding": "power",
+      "cardUtilization": 0.23083889006343997
+    }
+  },
+  {
+    "id": "l4-cloud-hub",
+    "name": "L4, hub cluster (1 per 10) vs cloud rental, $0.05 under",
+    "accelerator": "l4",
+    "benchmark": "cloud",
+    "config": {
+      "version": 3,
+      "name": "L4, hub cluster (1 per 10) vs cloud rental, $0.05 under",
+      "seed": 42,
+      "hull": {
+        "sideM": 1.52,
+        "draftM": 0.6,
+        "massKg": 150,
+        "podVolumeL": 120,
+        "podMassKg": 40,
+        "petalCount": 8,
+        "petalLengthM": 1,
+        "petalWidthM": 0.9,
+        "tracking": "yaw",
+        "fixedTiltDeg": 25,
+        "maxTiltDeg": 60,
+        "dragCd": 1
+      },
+      "panel": {
+        "presetId": "csi-tophiku6",
+        "efficiency": 0.234,
+        "usdPerW": 0.132,
+        "kgPerM2": 10.5,
+        "tempCoeffPerC": -0.0029
+      },
+      "pv": {
+        "mpptEff": 0.97,
+        "waterTempC": 17,
+        "cellTempRiseC": 20
+      },
+      "battery": {
+        "presetId": "bnef-lfp-pack",
+        "kwh": 4,
+        "usdPerKwh": 81,
+        "whPerKg": 140,
+        "rte": 0.93,
+        "cycleLife": 8000,
+        "dod": 0.9,
+        "followerExtraKwh": 0
+      },
+      "compute": {
+        "presetId": "l4",
+        "cards": 1,
+        "tdpW": 72,
+        "denseTflops": 121,
+        "priceUsd": 3995,
+        "massKg": 0.5,
+        "volumeL": 0.5,
+        "hostW": 40,
+        "coolingOverhead": 0.05,
+        "policy": "firm",
+        "firmComputeW": 0
+      },
+      "loads": {
+        "avionicsW": 15,
+        "actuatorW": 10,
+        "masterAvionicsW": 25,
+        "followerAvionicsW": 4
+      },
+      "comms": {
+        "terminalId": "performance-gen3",
+        "terminalW": 87.5,
+        "terminalUsd": 1849,
+        "terminalMassKg": 5.2,
+        "downMbps": 100,
+        "upMbps": 15,
+        "planId": "gp-1tb",
+        "planUsdPerMonth": 1150,
+        "planCapGB": 1000,
+        "throttleDownMbps": 1,
+        "throttleUpMbps": 0.5,
+        "overageUsdPerGB": 2,
+        "buyOverage": false,
+        "modulesPerTerminal": 10,
+        "hubMode": true,
+        "radioW": 5,
+        "radioUsd": 300,
+        "radioRangeM": 2000
+      },
+      "propulsion": {
+        "thrusterId": "t200",
+        "count": 2,
+        "thrustN": 51.5,
+        "maxElecW": 390,
+        "usd": 230,
+        "massKg": 0.427,
+        "propEff": 0.4
+      },
+      "env": {
+        "originLat": 33.05,
+        "originLon": -118.95,
+        "currentMs": 0.15,
+        "currentHeadingDeg": 141,
+        "currentVariabilityMs": 0.12,
+        "tidalMs": 0.08,
+        "windMeanMs": 5,
+        "stowWindMs": 13.9,
+        "cloudCellKm": 30,
+        "cloudCellAmp": 0.15,
+        "cloudDriftMs": 5.7,
+        "cloudDriftHeadingDeg": 135,
+        "dayVariability": 1,
+        "marineLayerStrength": 1,
+        "disturbanceMs": 0.02
+      },
+      "swarm": {
+        "count": 20,
+        "spacingM": 150,
+        "toleranceM": 40,
+        "breakawayM": 300,
+        "strategy": "station",
+        "cruiseMs": 0.3,
+        "horizonH": 3,
+        "replanMin": 30,
+        "minOffshoreKm": 20,
+        "maxOffshoreKm": 150
+      },
+      "jobs": {
+        "arrivalsPerHour": 1500,
+        "mixInference": 0.95,
+        "mixTraining": 0.04,
+        "mixDataHeavy": 0.01,
+        "checkpointMin": 15
+      },
+      "econ": {
+        "firmUsdPerGpuH": 0.707,
+        "spotUsdPerGpuH": 0.44,
+        "slaTarget": 0.99,
+        "slaPenaltyMultiple": 1,
+        "hullUsd": 10000,
+        "podUsd": 3000,
+        "heatExchangerUsd": 1000,
+        "petalUsdPerM2": 250,
+        "mpptUsdPerW": 0.074,
+        "gnssUsd": 184.22,
+        "avionicsUsd": 800,
+        "masterAvionicsUsd": 1500,
+        "followerAvionicsUsd": 300,
+        "hostUsd": 1500,
+        "batteryIntegrationUplift": 1.3,
+        "integrationPct": 0.25,
+        "contingencyPct": 0.15,
+        "sparesPct": 0.1,
+        "deploymentVesselDays": 3,
+        "vesselDayUsd": 15000,
+        "maintenanceVisitsPerYear": 2,
+        "visitUsd": 25000,
+        "insurancePct": 0.03,
+        "moduleLossRate": 0.05,
+        "acceleratorRefreshYears": 4,
+        "discountRate": 0.12,
+        "horizonYears": 7
+      },
+      "market": {
+        "priceMode": "undercut",
+        "benchmark": "cloud",
+        "undercutUsd": 0.05,
+        "gasUsdPerMMBtu": 3.48,
+        "heatRateBtuPerKwh": 8295,
+        "gasOmUsdPerMWh": 10.2,
+        "genCapexUsdPerKw": 2262,
+        "genLifeYears": 20,
+        "pue": 1.2,
+        "facilityUsdPerKwMonth": 195.94,
+        "serverOverheadW": 100,
+        "serverOverheadUsd": 2500,
+        "gpuLifeYears": 5,
+        "benchmarkUtilization": 0.8,
+        "operatorMargin": 0.25,
+        "competitorWacc": 0.0933
+      }
+    },
+    "metrics": {
+      "benchmarkFirm": 0.707,
+      "priceFirm": 0.6569999999999999,
+      "priceSpot": 0.39,
+      "costPerGpuHour": 7.900784229070408,
+      "marginPerGpuHour": -7.510784229070407,
+      "marginAfterCapitalYear": -303758.44783429435,
+      "grossMarginYear": -119823.86833351271,
+      "paybackMonths": null,
+      "pflopHours": 4893.599798232876,
+      "gpuHours": 40442.97353911468,
+      "capexTotal": 795263.8885456,
+      "binding": "power",
+      "cardUtilization": 0.23083889006343997
     }
   }
 ]

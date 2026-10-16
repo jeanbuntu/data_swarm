@@ -65,6 +65,7 @@ export const PANEL_DEFS: PanelDef[] = [
       sl('battery.rte', 'Round-trip efficiency', 50, 100, 0.5, '%', 100),
       sl('battery.cycleLife', 'Cycle life', 100, 20000, 100, 'cycles'),
       sl('battery.dod', 'Usable depth of discharge', 10, 100, 1, '%', 100),
+      sl('battery.followerExtraKwh', 'Extra battery on followers (hub mode)', 0, 20, 0.5, 'kWh'),
     ],
   },
   {
@@ -93,7 +94,10 @@ export const PANEL_DEFS: PanelDef[] = [
     items: [
       { kind: 'preset', preset: 'terminal', label: 'Terminal' },
       { kind: 'preset', preset: 'plan', label: 'Data plan' },
-      sl('comms.modulesPerTerminal', 'Modules per terminal', 1, 20, 1),
+      { kind: 'toggle', path: 'comms.hubMode', label: 'Master node per cluster: only masters carry Starlink and the cluster computer' },
+      sl('comms.modulesPerTerminal', 'Modules per terminal (cluster size)', 1, 20, 1),
+      sl('loads.masterAvionicsW', 'Master cluster computer power', 0, 200, 1, 'W'),
+      sl('loads.followerAvionicsW', 'Follower controller power', 0, 100, 0.5, 'W'),
       sl('comms.terminalW', 'Terminal power', 0, 200, 0.5, 'W'),
       sl('comms.downMbps', 'Downlink per terminal', 0, 300, 1, 'Mbps'),
       sl('comms.upMbps', 'Uplink per terminal', 0, 60, 0.5, 'Mbps'),
@@ -192,6 +196,8 @@ export const PANEL_DEFS: PanelDef[] = [
       sl('econ.mpptUsdPerW', 'MPPT cost', 0, 1, 0.001, '$/W'),
       sl('econ.gnssUsd', 'GNSS cost', 0, 2000, 1, '$'),
       sl('econ.avionicsUsd', 'Avionics cost', 0, 10000, 10, '$'),
+      sl('econ.masterAvionicsUsd', 'Master cluster computer cost', 0, 20000, 50, '$'),
+      sl('econ.followerAvionicsUsd', 'Follower controller cost', 0, 5000, 10, '$'),
       sl('econ.hostUsd', 'Host board cost', 0, 20000, 50, '$'),
       sl('econ.batteryIntegrationUplift', 'Battery integration uplift', 1, 5, 0.05, 'x'),
       sl('econ.integrationPct', 'Integration uplift', 0, 100, 1, '%', 100),

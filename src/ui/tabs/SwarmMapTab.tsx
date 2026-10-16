@@ -2,11 +2,22 @@ import { useEffect, useRef, useState } from 'react';
 import { useFleet } from '../../state/store';
 import { useAnimationLoop } from '../../state/useAnimationLoop';
 import { createLiveSim, stepLive, kickModule, type LiveSim } from '../../model/live';
+import { moduleRole } from '../../model/derive';
 import { dateLabel, localSolarHour } from '../../model/time';
 import { MapCanvas } from '../map/MapCanvas';
 import { FormationCanvas } from '../map/FormationCanvas';
 import { Stat } from '../controls';
 import { BINDING_LABEL, fmtHour, fmtNum, fmtPct } from '../format';
+
+function masterVsFollower(s: LiveSim): string {
+  const roles = s.moduleTflop.map((_, i) => moduleRole(s.cfg, i));
+  const mean = (r: string) => {
+    const v = s.moduleTflop.filter((_, i) => roles[i] === r);
+    return v.length ? v.reduce((a, b) => a + b, 0) / v.length : 0;
+  };
+  const f = mean('follower');
+  return f > 0 ? `${fmtNum((mean('master') / f) * 100)}%` : 'n/a';
+}
 
 export function SwarmMapTab() {
   const cfg = useFleet((s) => s.cfg);
@@ -105,6 +116,9 @@ export function SwarmMapTab() {
         <Stat label="Swarm compute" value={last ? `${fmtNum(last.tflops)} TFLOPS` : 'n/a'} />
         <Stat label="Jobs done, queued" value={`${fmtNum(s.jobs.completed)}, ${fmtNum(s.jobs.queue.length)}`} />
         <Stat label="Mean job turnaround" value={s.jobs.completed ? `${fmtNum(s.jobs.turnaroundSumS / s.jobs.completed / 60, 1)} min` : 'n/a'} />
+        {cfg.comms.hubMode && (
+          <Stat label="Master vs follower compute today" value={masterVsFollower(s)} sub="Masters carry Starlink and the cluster computer" />
+        )}
         <Stat label="Binding now" value={BINDING_LABEL[s.binding]} />
         <Stat label="Distance offshore" value={`${fmtNum(s.env.offshoreKm(s.swarm.centroid.x, s.swarm.centroid.y))} km`} />
       </div>

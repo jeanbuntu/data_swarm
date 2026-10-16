@@ -42,4 +42,8 @@ export const COSTS: Record<string, Sourced> = {
   radioW: est(5, 'W', 'in-swarm radio link for shared uplink'),
   radioUsd: est(300, 'USD', 'in-swarm radio link'),
   radioRangeM: est(2000, 'm', 'in-swarm radio range'),
+  masterAvionicsW: est(25, 'W', 'cluster flight computer on the master node: coordination, routing and telemetry for its followers'),
+  followerAvionicsW: est(4, 'W', 'follower controller: GNSS, thruster and petal control, no Starlink'),
+  masterAvionicsUsd: est(1500, 'USD', 'cluster flight computer and sensors on the master node'),
+  followerAvionicsUsd: est(300, 'USD', 'follower microcontroller board and sensors'),
 };

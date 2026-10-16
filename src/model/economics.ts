@@ -16,19 +16,24 @@ export function moduleCapex(cfg: SimConfig): { lines: CostLine[]; total: number 
   const d = derive(cfg);
   const e = cfg.econ;
   const shared = cfg.comms.modulesPerTerminal > 1;
+  const n = cfg.swarm.count;
+  const followers = n - d.masterCount;
+  // Per-module averages: hub clusters mix master and follower avionics, and only followers carry extra battery.
+  const avionicsUsd = cfg.comms.hubMode ? (d.masterCount * e.masterAvionicsUsd + followers * e.followerAvionicsUsd) / n : e.avionicsUsd;
+  const avgKwh = cfg.battery.kwh + (cfg.comms.hubMode ? (cfg.battery.followerExtraKwh * followers) / n : 0);
   const base: CostLine[] = [
     { key: 'panels', label: 'Solar panels', usd: d.peakPvW * cfg.panel.usdPerW, estimate: false },
     { key: 'petals', label: 'Petal frames and actuators', usd: d.petalM2 * e.petalUsdPerM2, estimate: true },
     { key: 'hull', label: 'Hull', usd: e.hullUsd, estimate: true },
     { key: 'pod', label: 'Compute pod', usd: e.podUsd, estimate: true },
     { key: 'heatExchanger', label: 'Seawater heat exchanger', usd: e.heatExchangerUsd, estimate: true },
-    { key: 'battery', label: 'Battery (integrated)', usd: cfg.battery.kwh * cfg.battery.usdPerKwh * e.batteryIntegrationUplift, estimate: false },
+    { key: 'battery', label: 'Battery (integrated)', usd: avgKwh * cfg.battery.usdPerKwh * e.batteryIntegrationUplift, estimate: false },
     { key: 'mppt', label: 'MPPT controllers', usd: d.peakPvW * e.mpptUsdPerW, estimate: false },
     { key: 'accelerators', label: 'Accelerators', usd: cfg.compute.cards * cfg.compute.priceUsd, estimate: false },
     { key: 'host', label: 'Host board and network', usd: cfg.compute.cards > 0 ? e.hostUsd : 0, estimate: true },
-    { key: 'starlink', label: 'Starlink terminal share', usd: cfg.comms.terminalUsd / cfg.comms.modulesPerTerminal + (shared ? cfg.comms.radioUsd : 0), estimate: false },
+    { key: 'starlink', label: 'Starlink terminal share', usd: (d.terminals * cfg.comms.terminalUsd) / n + (shared ? cfg.comms.radioUsd : 0), estimate: false },
     { key: 'thrusters', label: 'Thrusters', usd: cfg.propulsion.count * cfg.propulsion.usd, estimate: false },
-    { key: 'avionics', label: 'GNSS and avionics', usd: e.gnssUsd + e.avionicsUsd, estimate: true },
+    { key: 'avionics', label: 'GNSS and avionics', usd: e.gnssUsd + avionicsUsd, estimate: true },
   ];
   const sub = base.reduce((a, l) => a + l.usd, 0);
   const integration = sub * e.integrationPct;

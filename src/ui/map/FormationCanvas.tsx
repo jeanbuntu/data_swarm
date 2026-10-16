@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import type { LiveSim } from '../../model/live';
 import { add, type Vec } from '../../model/vec';
+import { moduleRole } from '../../model/derive';
 import { cssVar, setupCanvas } from './canvasUtil';
 
 function niceMeters(v: number): number {
@@ -102,6 +103,14 @@ export function FormationCanvas({ sim, frame }: { sim: LiveSim; frame: number })
       const f = flows[i];
       const color = f && !f.online ? muted : m.stray ? warn : accent;
       drawFlower(g, q.x, q.y, glyph, cfg.hull.petalCount, sim.stowed, color);
+      if (moduleRole(cfg, i) === 'master') {
+        // Masters carry Starlink: mark them with a ring.
+        g.strokeStyle = cssVar('--text');
+        g.lineWidth = 1.5;
+        g.beginPath();
+        g.arc(q.x, q.y, glyph + 4, 0, 2 * Math.PI);
+        g.stroke();
+      }
     });
 
     const cur = sim.env.current(sim.t);
@@ -123,7 +132,7 @@ export function FormationCanvas({ sim, frame }: { sim: LiveSim; frame: number })
     g.stroke();
     g.fillText(`${nice} m`, W - 20 - bar, H - 26);
     g.fillStyle = cssVar('--muted');
-    g.fillText('Lines to the top edge: jobs returned over Starlink', 16, 18);
+    g.fillText(cfg.comms.hubMode ? 'Ringed nodes are masters with Starlink. Lines to the top edge: jobs returned' : 'Lines to the top edge: jobs returned over Starlink', 16, 18);
   }, [sim, frame]);
 
   return <canvas ref={ref} className="formation-canvas" role="img" aria-label="Zoomed view of the formation, tolerance rings, strays and returning jobs" />;

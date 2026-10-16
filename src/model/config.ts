@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { MARKET_DEFAULTS, MARKET_MODE_DEFAULTS } from '../presets/market';
 import { ACCELERATORS } from '../presets/hardware';
+import { COSTS } from '../presets/costs';
 
 const n = (min: number, max: number) => z.number().finite().min(min).max(max);
 const int = (min: number, max: number) => z.number().int().min(min).max(max);
@@ -15,7 +16,7 @@ export const PriceModeSchema = z.enum(['manual', 'undercut']);
 export const BenchmarkSchema = z.enum(['gas', 'cloud']);
 
 export const ConfigSchema = z.object({
-  version: z.literal(2),
+  version: z.literal(3),
   name: z.string().min(1).max(80),
   seed: int(0, 2147483647),
   hull: z.object({
@@ -25,16 +26,16 @@ export const ConfigSchema = z.object({
   }),
   panel: z.object({ presetId: z.string(), efficiency: n(0.05, 0.5), usdPerW: n(0, 20), kgPerM2: n(0.5, 30), tempCoeffPerC: n(-0.01, 0) }),
   pv: z.object({ mpptEff: n(0.8, 1), waterTempC: n(0, 35), cellTempRiseC: n(0, 40) }),
-  battery: z.object({ presetId: z.string(), kwh: n(0, 200), usdPerKwh: n(0, 2000), whPerKg: n(20, 400), rte: n(0.5, 1), cycleLife: n(100, 20000), dod: n(0.1, 1) }),
+  battery: z.object({ presetId: z.string(), kwh: n(0, 200), usdPerKwh: n(0, 2000), whPerKg: n(20, 400), rte: n(0.5, 1), cycleLife: n(100, 20000), dod: n(0.1, 1), followerExtraKwh: n(0, 100) }),
   compute: z.object({
     presetId: z.string(), cards: int(0, 64), tdpW: n(1, 2000), denseTflops: n(0, 5000), priceUsd: n(0, 100000),
     massKg: n(0, 50), volumeL: n(0, 50), hostW: n(0, 1000), coolingOverhead: n(0, 0.5), policy: PolicySchema, firmComputeW: n(0, 100000),
   }),
-  loads: z.object({ avionicsW: n(0, 500), actuatorW: n(0, 500) }),
+  loads: z.object({ avionicsW: n(0, 500), actuatorW: n(0, 500), masterAvionicsW: n(0, 500), followerAvionicsW: n(0, 500) }),
   comms: z.object({
     terminalId: z.string(), terminalW: n(0, 500), terminalUsd: n(0, 20000), terminalMassKg: n(0, 50), downMbps: n(0, 2000), upMbps: n(0, 500),
     planId: z.string(), planUsdPerMonth: n(0, 50000), planCapGB: n(0, 100000), throttleDownMbps: n(0, 100), throttleUpMbps: n(0, 100),
-    overageUsdPerGB: n(0, 100).nullable(), buyOverage: z.boolean(), modulesPerTerminal: int(1, 100),
+    overageUsdPerGB: n(0, 100).nullable(), buyOverage: z.boolean(), modulesPerTerminal: int(1, 100), hubMode: z.boolean(),
     radioW: n(0, 100), radioUsd: n(0, 10000), radioRangeM: n(10, 50000),
   }),
   propulsion: z.object({ thrusterId: z.string(), count: int(0, 8), thrustN: n(0, 2000), maxElecW: n(0, 5000), usd: n(0, 20000), massKg: n(0, 50), propEff: n(0.05, 0.9) }),
@@ -51,7 +52,7 @@ export const ConfigSchema = z.object({
   econ: z.object({
     firmUsdPerGpuH: n(0, 100), spotUsdPerGpuH: n(0, 100), slaTarget: n(0, 1), slaPenaltyMultiple: n(0, 10),
     hullUsd: n(0, 1e6), podUsd: n(0, 1e6), heatExchangerUsd: n(0, 1e5), petalUsdPerM2: n(0, 1e4), mpptUsdPerW: n(0, 5),
-    gnssUsd: n(0, 1e4), avionicsUsd: n(0, 1e5), hostUsd: n(0, 1e5), batteryIntegrationUplift: n(1, 5),
+    gnssUsd: n(0, 1e4), avionicsUsd: n(0, 1e5), masterAvionicsUsd: n(0, 1e5), followerAvionicsUsd: n(0, 1e5), hostUsd: n(0, 1e5), batteryIntegrationUplift: n(1, 5),
     integrationPct: n(0, 2), contingencyPct: n(0, 2), sparesPct: n(0, 1), deploymentVesselDays: n(0, 365), vesselDayUsd: n(0, 1e6),
     maintenanceVisitsPerYear: n(0, 52), visitUsd: n(0, 1e7), insurancePct: n(0, 0.5), moduleLossRate: n(0, 1),
     acceleratorRefreshYears: n(1, 20), discountRate: n(0, 1), horizonYears: int(1, 30),
@@ -69,11 +70,25 @@ export type ParseResult = { ok: true; config: SimConfig } | { ok: false; errors:
 
 /** Upgrades saved scenarios from earlier versions before validation. */
 function migrate(raw: unknown): unknown {
-  if (raw && typeof raw === 'object' && (raw as { version?: unknown }).version === 1) {
-    const accel = (raw as { compute?: { presetId?: string } }).compute?.presetId;
-    return { ...(raw as object), version: 2, market: defaultMarket(accel) };
+  let r = raw as Record<string, unknown> | null;
+  if (!r || typeof r !== 'object') return raw;
+  if (r.version === 1) {
+    const accel = (r as { compute?: { presetId?: string } }).compute?.presetId;
+    r = { ...r, version: 2, market: defaultMarket(accel) };
   }
-  return raw;
+  if (r.version === 2) {
+    // Version 3 added master/follower hub clusters; existing scenarios keep the old behavior.
+    const obj = (k: string) => (r![k] && typeof r![k] === 'object' ? (r![k] as Record<string, unknown>) : {});
+    r = {
+      ...r,
+      version: 3,
+      comms: { ...obj('comms'), hubMode: false },
+      loads: { ...obj('loads'), masterAvionicsW: COSTS.masterAvionicsW.value, followerAvionicsW: COSTS.followerAvionicsW.value },
+      battery: { ...obj('battery'), followerExtraKwh: 0 },
+      econ: { ...obj('econ'), masterAvionicsUsd: COSTS.masterAvionicsUsd.value, followerAvionicsUsd: COSTS.followerAvionicsUsd.value },
+    };
+  }
+  return r;
 }
 
 export function parseConfig(raw: unknown): ParseResult {

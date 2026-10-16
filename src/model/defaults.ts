@@ -63,6 +63,9 @@ export const SOURCED_DEFAULTS: [string, Sourced][] = [
   ['compute.cards', design(8, 'cards', 'sized to the module power budget')], ['compute.hostW', COSTS.hostW], ['compute.coolingOverhead', COSTS.coolingOverhead],
   ['compute.firmComputeW', design(200, 'W', 'firm 24/7 compute commitment per module')],
   ['loads.avionicsW', COSTS.avionicsW], ['loads.actuatorW', COSTS.actuatorW],
+  ['loads.masterAvionicsW', COSTS.masterAvionicsW], ['loads.followerAvionicsW', COSTS.followerAvionicsW],
+  ['battery.followerExtraKwh', design(0, 'kWh', 'extra battery in space freed on followers; 0 until a layout confirms it fits')],
+  ['econ.masterAvionicsUsd', COSTS.masterAvionicsUsd], ['econ.followerAvionicsUsd', COSTS.followerAvionicsUsd],
   ['comms.modulesPerTerminal', design(1, 'modules', 'one terminal per module')],
   ['comms.radioW', COSTS.radioW], ['comms.radioUsd', COSTS.radioUsd], ['comms.radioRangeM', COSTS.radioRangeM],
   ['propulsion.count', design(2, 'thrusters', 'differential steering')], ['propulsion.propEff', COSTS.propEff],
@@ -91,16 +94,16 @@ export const SOURCED_DEFAULTS: [string, Sourced][] = [
 ];
 
 const BASE: SimConfig = {
-  version: 2, name: 'Baseline 20-module swarm', seed: 42,
+  version: 3, name: 'Baseline 20-module swarm', seed: 42,
   hull: { sideM: 0, draftM: 0, massKg: 0, podVolumeL: 0, podMassKg: 0, petalCount: 0, petalLengthM: 0, petalWidthM: 0, tracking: 'yaw', fixedTiltDeg: 0, maxTiltDeg: 0, dragCd: 0 },
   panel: { presetId: '', efficiency: 0, usdPerW: 0, kgPerM2: 0, tempCoeffPerC: 0 },
   pv: { mpptEff: 0, waterTempC: 0, cellTempRiseC: 0 },
-  battery: { presetId: '', kwh: 0, usdPerKwh: 0, whPerKg: 0, rte: 0, cycleLife: 0, dod: 0 },
+  battery: { presetId: '', kwh: 0, usdPerKwh: 0, whPerKg: 0, rte: 0, cycleLife: 0, dod: 0, followerExtraKwh: 0 },
   compute: { presetId: '', cards: 0, tdpW: 0, denseTflops: 0, priceUsd: 0, massKg: 0, volumeL: 0, hostW: 0, coolingOverhead: 0, policy: 'firm', firmComputeW: 0 },
-  loads: { avionicsW: 0, actuatorW: 0 },
+  loads: { avionicsW: 0, actuatorW: 0, masterAvionicsW: 0, followerAvionicsW: 0 },
   comms: {
     terminalId: '', terminalW: 0, terminalUsd: 0, terminalMassKg: 0, downMbps: 0, upMbps: 0, planId: '', planUsdPerMonth: 0, planCapGB: 0,
-    throttleDownMbps: 0, throttleUpMbps: 0, overageUsdPerGB: null, buyOverage: false, modulesPerTerminal: 0, radioW: 0, radioUsd: 0, radioRangeM: 0,
+    throttleDownMbps: 0, throttleUpMbps: 0, overageUsdPerGB: null, buyOverage: false, modulesPerTerminal: 0, hubMode: false, radioW: 0, radioUsd: 0, radioRangeM: 0,
   },
   propulsion: { thrusterId: '', count: 0, thrustN: 0, maxElecW: 0, usd: 0, massKg: 0, propEff: 0 },
   env: {
@@ -111,7 +114,7 @@ const BASE: SimConfig = {
   jobs: { arrivalsPerHour: 0, mixInference: 0, mixTraining: 0, mixDataHeavy: 0, checkpointMin: 0 },
   econ: {
     firmUsdPerGpuH: 0, spotUsdPerGpuH: 0, slaTarget: 0, slaPenaltyMultiple: 0, hullUsd: 0, podUsd: 0, heatExchangerUsd: 0, petalUsdPerM2: 0,
-    mpptUsdPerW: 0, gnssUsd: 0, avionicsUsd: 0, hostUsd: 0, batteryIntegrationUplift: 0, integrationPct: 0, contingencyPct: 0, sparesPct: 0,
+    mpptUsdPerW: 0, gnssUsd: 0, avionicsUsd: 0, masterAvionicsUsd: 0, followerAvionicsUsd: 0, hostUsd: 0, batteryIntegrationUplift: 0, integrationPct: 0, contingencyPct: 0, sparesPct: 0,
     deploymentVesselDays: 0, vesselDayUsd: 0, maintenanceVisitsPerYear: 0, visitUsd: 0, insurancePct: 0, moduleLossRate: 0,
     acceleratorRefreshYears: 0, discountRate: 0, horizonYears: 0,
   },

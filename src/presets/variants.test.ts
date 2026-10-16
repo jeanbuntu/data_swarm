@@ -5,8 +5,9 @@ import { economics } from '../model/economics';
 import { evaluate } from '../model/optimizer';
 
 describe('built-in pricing variants', () => {
-  it('ships eight valid configs priced $0.05 under a benchmark', () => {
-    expect(BUILTIN_VARIANTS).toHaveLength(8);
+  it('ships ten valid configs priced $0.05 under a benchmark', () => {
+    expect(BUILTIN_VARIANTS).toHaveLength(10);
+    expect(BUILTIN_VARIANTS.filter((v) => v.config.comms.hubMode)).toHaveLength(2);
     for (const v of BUILTIN_VARIANTS) {
       expect(v.config.market.priceMode).toBe('undercut');
       expect(v.config.market.undercutUsd).toBe(0.05);

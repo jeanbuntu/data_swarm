@@ -71,4 +71,15 @@ describe('config', () => {
     }
     expect(parseConfig('not json object').ok).toBe(false);
   });
+  it('migrates version 1 scenarios by adding default market settings', () => {
+    const old = JSON.parse(JSON.stringify(defaultConfig()));
+    delete old.market;
+    old.version = 1;
+    const r = parseConfig(old);
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.config.version).toBe(2);
+      expect(r.config.market).toEqual(defaultConfig().market);
+    }
+  });
 });

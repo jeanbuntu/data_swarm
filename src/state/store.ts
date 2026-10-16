@@ -3,6 +3,7 @@ import { ConfigSchema, SimConfig, setPath, parseConfig } from '../model/config';
 import { defaultConfig, applyPreset, PresetKind } from '../model/defaults';
 import type { AnnualResult } from '../model/annual';
 import type { Econ } from '../model/economics';
+import { BUILTIN_VARIANTS } from '../presets/variants';
 
 export type TabId = 'map' | 'module' | 'energy' | 'economics' | 'optimizer' | 'assumptions';
 
@@ -100,7 +101,7 @@ export const useFleet = create<FleetStore>((set, get) => ({
     set({ scenarios: { ...get().scenarios, [n]: get().cfg }, notice: `Saved "${n}".` });
   },
   loadScenario: (name) => {
-    const c = get().scenarios[name];
+    const c = get().scenarios[name] ?? BUILTIN_VARIANTS.find((v) => v.name === name)?.config;
     if (c) set({ cfg: c, notice: `Loaded "${name}".` });
   },
   deleteScenario: (name) => {

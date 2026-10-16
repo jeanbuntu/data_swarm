@@ -2,6 +2,8 @@ import type { SimConfig } from './config';
 import { payOverage } from './defaults';
 import { derive } from './derive';
 import type { AnnualResult } from './annual';
+import { crf, npv, irr, paybackMonths } from './finance';
+import { benchmarkPrices, effectivePrices } from './benchmark';
 
 export interface CostLine {
   key: string;
@@ -46,38 +48,7 @@ export function swarmCapex(cfg: SimConfig): { perModule: number; fleetModules: n
   return { perModule, fleetModules, deployment, total: perModule * fleetModules + deployment };
 }
 
-export const crf = (r: number, n: number): number => (r === 0 ? 1 / n : (r * (1 + r) ** n) / ((1 + r) ** n - 1));
-
-export const npv = (r: number, flows: number[]): number => flows.reduce((a, f, i) => a + f / (1 + r) ** i, 0);
-
-export function irr(flows: number[]): number | null {
-  let lo = -0.99, hi = 10;
-  let flo = npv(lo, flows);
-  const fhi = npv(hi, flows);
-  if (!Number.isFinite(flo) || !Number.isFinite(fhi) || flo * fhi > 0) return null;
-  for (let i = 0; i < 200; i++) {
-    const mid = (lo + hi) / 2;
-    const fm = npv(mid, flows);
-    if (Math.abs(fm) < 1e-9) return mid;
-    if (flo * fm < 0) hi = mid;
-    else {
-      lo = mid;
-      flo = fm;
-    }
-  }
-  return (lo + hi) / 2;
-}
-
-export function paybackMonths(flows: number[]): number | null {
-  let cum = flows[0];
-  if (cum >= 0) return 0;
-  for (let y = 1; y < flows.length; y++) {
-    const next = cum + flows[y];
-    if (next >= 0) return (y - 1) * 12 + (-cum / flows[y]) * 12;
-    cum = next;
-  }
-  return null;
-}
+export { crf, npv, irr, paybackMonths } from './finance';
 
 export interface Econ {
   moduleCapex: { lines: CostLine[]; total: number };
@@ -95,8 +66,13 @@ export interface Econ {
   costPerGpuHour: number;
   marginPerGpuHour: number;
   lcocPerPflopHour: number;
+  /** Prices we charge (manual, or benchmark minus the undercut). */
+  priceFirm: number;
+  priceSpot: number;
+  /** The selected competitor benchmark. */
   marketFirm: number;
   marketSpot: number;
+  benchmarkLabel: string;
   flows: number[];
   npv: number;
   irr: number | null;
@@ -116,10 +92,12 @@ export function economics(cfg: SimConfig, annual: AnnualResult): Econ {
   const spotGpuHours = toGpuH(t.spotTflop);
   const committedFirmGpuHours = toGpuH(t.firmCommittedTflop);
   const availability = annual.availability;
+  const price = effectivePrices(cfg);
+  const bench = benchmarkPrices(cfg);
   const slaPenalty =
-    availability !== null && availability < e.slaTarget ? (e.slaTarget - availability) * committedFirmGpuHours * e.firmUsdPerGpuH * e.slaPenaltyMultiple : 0;
-  const revenueFirm = firmGpuHours * e.firmUsdPerGpuH;
-  const revenueSpot = spotGpuHours * e.spotUsdPerGpuH;
+    availability !== null && availability < e.slaTarget ? (e.slaTarget - availability) * committedFirmGpuHours * price.firm * e.slaPenaltyMultiple : 0;
+  const revenueFirm = firmGpuHours * price.firm;
+  const revenueSpot = spotGpuHours * price.spot;
   const revenue = { firm: revenueFirm, spot: revenueSpot, slaPenalty, total: revenueFirm + revenueSpot - slaPenalty };
 
   const n = cfg.swarm.count;
@@ -167,8 +145,11 @@ export function economics(cfg: SimConfig, annual: AnnualResult): Econ {
     costPerGpuHour: gpuHours > 0 ? annualCost / gpuHours : Infinity,
     marginPerGpuHour: gpuHours > 0 ? (revenue.total - annualCost) / gpuHours : NaN,
     lcocPerPflopHour: annualPflopHours > 0 ? annualCost / annualPflopHours : Infinity,
-    marketFirm: e.firmUsdPerGpuH,
-    marketSpot: e.spotUsdPerGpuH,
+    priceFirm: price.firm,
+    priceSpot: price.spot,
+    marketFirm: bench.firm,
+    marketSpot: bench.spot,
+    benchmarkLabel: bench.label,
     flows,
     npv: npv(e.discountRate, flows),
     irr: irr(flows),

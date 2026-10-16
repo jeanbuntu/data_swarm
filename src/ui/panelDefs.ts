@@ -166,8 +166,23 @@ export const PANEL_DEFS: PanelDef[] = [
   {
     title: 'Pricing and economics',
     items: [
-      sl('econ.firmUsdPerGpuH', 'Firm price', 0, 20, 0.01, '$/GPU-h'),
-      sl('econ.spotUsdPerGpuH', 'Spot price', 0, 20, 0.01, '$/GPU-h'),
+      {
+        kind: 'select', path: 'market.priceMode', label: 'How we set prices',
+        options: [
+          { value: 'manual', label: 'Manual prices below' },
+          { value: 'undercut', label: 'Undercut a competitor benchmark' },
+        ],
+      },
+      {
+        kind: 'select', path: 'market.benchmark', label: 'Competitor benchmark',
+        options: [
+          { value: 'gas', label: 'Gas-powered land data center (modeled)' },
+          { value: 'cloud', label: 'Cloud rental price (sourced)' },
+        ],
+      },
+      sl('market.undercutUsd', 'Undercut by', 0, 1, 0.01, '$/GPU-h'),
+      sl('econ.firmUsdPerGpuH', 'Manual firm price', 0, 20, 0.01, '$/GPU-h'),
+      sl('econ.spotUsdPerGpuH', 'Manual spot price', 0, 20, 0.01, '$/GPU-h'),
       sl('econ.slaTarget', 'Firm SLA target', 0, 100, 0.1, '%', 100),
       sl('econ.slaPenaltyMultiple', 'SLA penalty multiple', 0, 10, 0.1, 'x'),
       sl('econ.hullUsd', 'Hull cost', 0, 100000, 100, '$'),
@@ -196,6 +211,26 @@ export const PANEL_DEFS: PanelDef[] = [
 ];
 
 /** Slider bounds in config units, used to clamp optimizer range inputs. */
+
+PANEL_DEFS.push({
+  title: 'Gas-powered competitor',
+  items: [
+    sl('market.gasUsdPerMMBtu', 'Gas price', 0, 20, 0.05, '$/MMBtu'),
+    sl('market.heatRateBtuPerKwh', 'Generator heat rate', 5000, 15000, 50, 'Btu/kWh'),
+    sl('market.gasOmUsdPerMWh', 'Generation O&M', 0, 60, 0.5, '$/MWh'),
+    sl('market.genCapexUsdPerKw', 'Generation capex', 0, 4000, 25, '$/kW'),
+    sl('market.genLifeYears', 'Generation life', 5, 40, 1, 'yr'),
+    sl('market.pue', 'PUE', 1, 2, 0.01),
+    sl('market.facilityUsdPerKwMonth', 'Facility cost', 0, 400, 5, '$/kW-mo'),
+    sl('market.serverOverheadW', 'Server power per GPU', 0, 1000, 5, 'W'),
+    sl('market.serverOverheadUsd', 'Server cost per GPU', 0, 40000, 100, '$'),
+    sl('market.gpuLifeYears', 'GPU depreciation life', 1, 10, 0.5, 'yr'),
+    sl('market.benchmarkUtilization', 'Hours sold', 5, 100, 1, '%', 100),
+    sl('market.operatorMargin', 'Operator markup', 0, 200, 1, '%', 100),
+    sl('market.competitorWacc', 'Competitor cost of capital', 0, 30, 0.1, '%', 100),
+  ],
+});
+
 export const SLIDER_BOUNDS: Record<string, [number, number]> = Object.fromEntries(
   PANEL_DEFS.flatMap((p) => p.items.flatMap((i) => (i.kind === 'slider' ? [[i.path, [i.min / (i.scale ?? 1), i.max / (i.scale ?? 1)]] as [string, [number, number]]] : []))),
 );

@@ -1,4 +1,6 @@
 import { z } from 'zod';
+import { MARKET_DEFAULTS, MARKET_MODE_DEFAULTS } from '../presets/market';
+import { ACCELERATORS } from '../presets/hardware';
 
 const n = (min: number, max: number) => z.number().finite().min(min).max(max);
 const int = (min: number, max: number) => z.number().int().min(min).max(max);
@@ -9,9 +11,11 @@ export const StrategySchema = z.enum(['station', 'drift', 'seek']);
 export type Tracking = z.infer<typeof TrackingSchema>;
 export type Policy = z.infer<typeof PolicySchema>;
 export type Strategy = z.infer<typeof StrategySchema>;
+export const PriceModeSchema = z.enum(['manual', 'undercut']);
+export const BenchmarkSchema = z.enum(['gas', 'cloud']);
 
 export const ConfigSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   name: z.string().min(1).max(80),
   seed: int(0, 2147483647),
   hull: z.object({
@@ -52,13 +56,28 @@ export const ConfigSchema = z.object({
     maintenanceVisitsPerYear: n(0, 52), visitUsd: n(0, 1e7), insurancePct: n(0, 0.5), moduleLossRate: n(0, 1),
     acceleratorRefreshYears: n(1, 20), discountRate: n(0, 1), horizonYears: int(1, 30),
   }),
+  market: z.object({
+    priceMode: PriceModeSchema, benchmark: BenchmarkSchema, undercutUsd: n(0, 5),
+    gasUsdPerMMBtu: n(0, 50), heatRateBtuPerKwh: n(5000, 15000), gasOmUsdPerMWh: n(0, 100), genCapexUsdPerKw: n(0, 5000), genLifeYears: n(1, 40),
+    pue: n(1, 2.5), facilityUsdPerKwMonth: n(0, 500), serverOverheadW: n(0, 2000), serverOverheadUsd: n(0, 100000),
+    gpuLifeYears: n(1, 10), benchmarkUtilization: n(0.05, 1), operatorMargin: n(0, 3), competitorWacc: n(0, 0.5),
+  }),
 });
 
 export type SimConfig = z.infer<typeof ConfigSchema>;
 export type ParseResult = { ok: true; config: SimConfig } | { ok: false; errors: string[] };
 
+/** Upgrades saved scenarios from earlier versions before validation. */
+function migrate(raw: unknown): unknown {
+  if (raw && typeof raw === 'object' && (raw as { version?: unknown }).version === 1) {
+    const accel = (raw as { compute?: { presetId?: string } }).compute?.presetId;
+    return { ...(raw as object), version: 2, market: defaultMarket(accel) };
+  }
+  return raw;
+}
+
 export function parseConfig(raw: unknown): ParseResult {
-  const r = ConfigSchema.safeParse(raw);
+  const r = ConfigSchema.safeParse(migrate(raw));
   if (r.success) return { ok: true, config: r.data };
   return { ok: false, errors: r.error.issues.map((i) => `${i.path.join('.') || '(root)'}: ${i.message}`) };
 }
@@ -88,4 +107,13 @@ export function setPath<T>(obj: T, path: string, value: unknown): T {
 export function leafPaths(obj: unknown, prefix = ''): string[] {
   if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) return prefix ? [prefix] : [];
   return Object.entries(obj as Record<string, unknown>).flatMap(([k, v]) => leafPaths(v, prefix ? `${prefix}.${k}` : k));
+}
+
+export type MarketConfig = SimConfig['market'];
+
+/** Default market settings from the sourced presets; server overhead follows the accelerator. */
+export function defaultMarket(acceleratorId?: string): MarketConfig {
+  const accel = ACCELERATORS.find((a) => a.id === acceleratorId) ?? ACCELERATORS[0];
+  const numeric = Object.fromEntries(Object.entries(MARKET_DEFAULTS).map(([k, v]) => [k, v.value]));
+  return { ...MARKET_MODE_DEFAULTS, ...numeric, serverOverheadW: accel.serverW.value, serverOverheadUsd: accel.serverUsd.value } as MarketConfig;
 }

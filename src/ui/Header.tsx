@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { useFleet } from '../state/store';
 import { ConfigSchema, parseConfig } from '../model/config';
+import { BUILTIN_VARIANTS } from '../presets/variants';
 
 type Theme = 'auto' | 'light' | 'dark';
 
@@ -57,11 +58,22 @@ export function Header() {
         <input className="scenario-name" value={cfg.name} aria-label="Scenario name" onChange={(e) => st().update('name', e.target.value)} />
         <select aria-label="Saved scenarios" value="" onChange={(e) => e.target.value && st().loadScenario(e.target.value)}>
           <option value="">Load scenario</option>
-          {Object.keys(scenarios).map((n) => (
-            <option key={n} value={n}>
-              {n}
-            </option>
-          ))}
+          {Object.keys(scenarios).length > 0 && (
+            <optgroup label="Saved">
+              {Object.keys(scenarios).map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </optgroup>
+          )}
+          <optgroup label="Pricing variants (built in)">
+            {BUILTIN_VARIANTS.map((v) => (
+              <option key={v.id} value={v.name}>
+                {v.name}
+              </option>
+            ))}
+          </optgroup>
         </select>
         <button onClick={() => st().saveScenario(cfg.name)}>Save</button>
         <button onClick={exportJson}>Export JSON</button>

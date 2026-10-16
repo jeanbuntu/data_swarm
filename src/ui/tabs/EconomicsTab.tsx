@@ -1,5 +1,6 @@
 import { useFleet } from '../../state/store';
 import { EconomicsHeadline, CapexChart, CashflowChart, PnlTable, TornadoPanel } from './econParts';
+import { VariantsTable } from './VariantsTable';
 
 export function EconomicsTab() {
   const econ = useFleet((s) => s.econ);
@@ -22,6 +23,7 @@ export function EconomicsTab() {
         <PnlTable econ={econ} cfg={cfg} />
         <TornadoPanel cfg={cfg} />
       </div>
+      <VariantsTable />
     </div>
   );
 }

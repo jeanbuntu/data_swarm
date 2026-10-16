@@ -15,6 +15,7 @@ function fmtMetric(ev: Evaluation, m: Metric): string {
     case 'costPerGpuHour': return fmtUsd(ev.costPerGpuHour, 2);
     case 'marginPerGpuHour': return fmtUsd(ev.marginPerGpuHour, 2);
     case 'marginYear': return fmtUsdCompact(ev.marginYear);
+    case 'marginAfterCapitalYear': return fmtUsdCompact(ev.marginAfterCapitalYear);
     case 'paybackMonths': return fmtMonths(ev.paybackMonths);
   }
 }

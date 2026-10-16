@@ -31,7 +31,7 @@ export function KpiStrip() {
       <div className="kpis">
         <Kpi label="Compute delivered" value={econ ? `${fmtCompact(econ.annualPflopHours)} PFLOP-h/yr` : pending} sub={econ ? `${fmtCompact(econ.gpuHours)} GPU-hours` : undefined} />
         <Kpi label="Binding constraint" value={binding ? BINDING_LABEL[binding.key] : pending} sub={binding ? `${fmtPct(binding.share)} of hours` : undefined} tone={binding ? `bind-${binding.key}` : undefined} />
-        <Kpi label="Cost per GPU-hour" value={econ ? fmtUsd(econ.costPerGpuHour, 2) : pending} sub={econ ? `Market ${fmtUsd(econ.marketFirm, 2)} firm, ${fmtUsd(econ.marketSpot, 2)} spot` : undefined} />
+        <Kpi label="Cost per GPU-hour" value={econ ? fmtUsd(econ.costPerGpuHour, 2) : pending} sub={econ ? `We charge ${fmtUsd(econ.priceFirm, 2)} firm; ${econ.benchmarkLabel} ${fmtUsd(econ.marketFirm, 2)}` : undefined} />
         <Kpi label="Gross margin per year" value={econ ? fmtUsdCompact(econ.grossMargin) : pending} sub={econ ? `${fmtUsd(econ.marginPerGpuHour, 2)} per GPU-hour after capital` : undefined} tone={econ && econ.grossMargin < 0 ? 'negative' : undefined} />
         <Kpi label="Payback" value={econ ? fmtMonths(econ.paybackMonths) : pending} sub={econ ? `Capex ${fmtUsdCompact(econ.capex.total)}` : undefined} />
         <button className={`kpi flags ${hasError ? 'has-error' : flags.length ? 'has-warn' : 'clear'}`} onClick={() => setOpen(!open)} aria-expanded={open}>

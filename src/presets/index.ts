@@ -3,16 +3,18 @@ import { PANELS, BATTERIES, ACCELERATORS, TERMINALS, PLANS, THRUSTERS } from './
 import { COSTS } from './costs';
 import { SOCAL_ENV, DAY_TYPE, DAY_K, MARINE_PROFILE_SOURCE, MARINE_MONTHLY_SOURCE } from './socal';
 import { WORKLOADS } from './workloads';
+import { MARKET_DEFAULTS } from './market';
 
 export * from './sourced';
 export * from './hardware';
 export * from './costs';
 export * from './socal';
 export * from './workloads';
+export * from './market';
 
 export const ALL_PRESET_DATA = {
   PANELS, BATTERIES, ACCELERATORS, TERMINALS, PLANS, THRUSTERS, COSTS, SOCAL_ENV, DAY_TYPE, DAY_K,
-  MARINE_PROFILE_SOURCE, MARINE_MONTHLY_SOURCE, WORKLOADS,
+  MARINE_PROFILE_SOURCE, MARINE_MONTHLY_SOURCE, WORKLOADS, MARKET_DEFAULTS,
 };
 
 function isSourced(v: unknown): v is Sourced {

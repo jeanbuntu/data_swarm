@@ -5,6 +5,8 @@ export interface BatteryPreset { id: string; name: string; usdPerKwh: Sourced; w
 export interface AcceleratorPreset {
   id: string; name: string; tdpW: Sourced; denseTflops: Sourced; priceUsd: Sourced; memGB: Sourced;
   massKg: Sourced; volumeL: Sourced; firmUsdPerGpuH: Sourced; spotUsdPerGpuH: Sourced;
+  /** Host, networking and server overhead per GPU in a land data center, for the competitor benchmark. */
+  serverW: Sourced; serverUsd: Sourced;
 }
 export interface TerminalPreset { id: string; name: string; terminalW: Sourced; usd: Sourced; massKg: Sourced; downMbps: Sourced; upMbps: Sourced }
 export interface PlanPreset {
@@ -103,6 +105,8 @@ const NV_L4 = 'https://www.nvidia.com/en-us/data-center/l4/';
 const NV_ORIN = 'https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/jetson-orin/';
 const LENOVO_B200 = 'https://lenovopress.lenovo.com/lp2226';
 const NV_HGX = 'https://www.nvidia.com/en-us/data-center/hgx/';
+const DGX_H100 = 'https://docs.nvidia.com/dgx/dgxh100-user-guide/introduction-to-dgxh100.html';
+const META_TCO = 'https://pytorchtoatoms.substack.com/p/metas-24k-h100-cluster-capextco-and';
 const GPU_PRICES = 'https://intuitionlabs.ai/articles/data-center-gpu-prices';
 const COREWEAVE = 'https://www.coreweave.com/pricing';
 const RUNPOD = 'https://www.runpod.io/pricing';
@@ -117,6 +121,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     massKg: est(0.5, 'kg', 'single-slot low-profile card'), volumeL: est(0.5, 'L', 'card plus mounting'),
     firmUsdPerGpuH: s(0.707, 'USD/GPU-h', GCP_G2, 'GCP g2-standard-4 on-demand'),
     spotUsdPerGpuH: s(0.44, 'USD/GPU-h', RUNPOD, 'RunPod community, proxy for spot'),
+    serverW: est(100, 'W', 'host share per L4 card'), serverUsd: est(2500, 'USD', 'host share per L4 card'),
   },
   {
     id: 'l40s', name: 'NVIDIA L40S (350 W)',
@@ -125,6 +130,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     memGB: s(48, 'GB', NV_L40S),
     massKg: est(1.5, 'kg', 'dual-slot card'), volumeL: est(2.5, 'L', 'card plus mounting'),
     firmUsdPerGpuH: s(2.25, 'USD/GPU-h', COREWEAVE), spotUsdPerGpuH: s(0.79, 'USD/GPU-h', RUNPOD, 'RunPod community'),
+    serverW: est(200, 'W', 'host share per L40S card'), serverUsd: est(4000, 'USD', 'host share per L40S card; no server price found'),
   },
   {
     id: 'h100-nvl', name: 'NVIDIA H100 NVL PCIe (375 W)',
@@ -133,6 +139,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     massKg: est(1.7, 'kg', 'dual-slot card'), volumeL: est(2.5, 'L', 'card plus mounting'),
     firmUsdPerGpuH: est(6.16, 'USD/GPU-h', 'H100 SXM CoreWeave price used as a proxy'),
     spotUsdPerGpuH: est(2.69, 'USD/GPU-h', 'H100 RunPod community price used as a proxy'),
+    serverW: est(300, 'W', 'PCIe host share per card'), serverUsd: est(6000, 'USD', 'PCIe host share per card'),
   },
   {
     id: 'h100-sxm', name: 'NVIDIA H100 SXM (700 W)',
@@ -140,6 +147,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     priceUsd: s(28000, 'USD', GPU_PRICES, 'midpoint of 25k to 31k; needs an HGX baseboard'), memGB: s(80, 'GB', NV_H100),
     massKg: est(2.5, 'kg', 'per-GPU share of an HGX board'), volumeL: est(3, 'L', 'per-GPU share of an HGX board'),
     firmUsdPerGpuH: s(6.16, 'USD/GPU-h', COREWEAVE), spotUsdPerGpuH: s(2.69, 'USD/GPU-h', RUNPOD, 'RunPod community'),
+    serverW: s(575, 'W', DGX_H100, 'derived: DGX H100 10.2 kW system max over 8 GPUs, minus 700 W GPU'), serverUsd: s(9100, 'USD', META_TCO, 'derived: about 37,100 USD per GPU incl. host and network minus the 28,000 USD card'),
   },
   {
     id: 'h200-sxm', name: 'NVIDIA H200 SXM (700 W)',
@@ -147,6 +155,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     priceUsd: s(35000, 'USD', GPU_PRICES, 'midpoint of 30k to 40k'), memGB: s(141, 'GB', NV_H200),
     massKg: est(2.5, 'kg', 'per-GPU share of an HGX board'), volumeL: est(3, 'L', 'per-GPU share of an HGX board'),
     firmUsdPerGpuH: s(6.31, 'USD/GPU-h', COREWEAVE), spotUsdPerGpuH: s(3.59, 'USD/GPU-h', RUNPOD, 'RunPod community'),
+    serverW: s(575, 'W', DGX_H100, 'H100 HGX host share used for H200'), serverUsd: s(9100, 'USD', META_TCO, 'H100 cluster host and network share used for H200'),
   },
   {
     id: 'b200', name: 'NVIDIA B200 HGX (1000 W)',
@@ -154,6 +163,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     priceUsd: s(40000, 'USD', GPU_PRICES, 'midpoint of 30k to 50k'), memGB: s(180, 'GB', NV_HGX),
     massKg: est(3, 'kg', 'per-GPU share of an HGX board'), volumeL: est(3.5, 'L', 'per-GPU share of an HGX board'),
     firmUsdPerGpuH: s(8.6, 'USD/GPU-h', COREWEAVE), spotUsdPerGpuH: s(5.98, 'USD/GPU-h', RUNPOD, 'RunPod community'),
+    serverW: est(790, 'W', 'about 14.3 kW per 8-GPU system minus 1,000 W GPU'), serverUsd: est(10000, 'USD', 'host and network share per GPU'),
   },
   {
     id: 'jetson-agx-orin', name: 'NVIDIA Jetson AGX Orin 64GB (60 W)',
@@ -164,6 +174,7 @@ export const ACCELERATORS: AcceleratorPreset[] = [
     massKg: est(1.4, 'kg', 'dev kit'), volumeL: est(2, 'L', 'dev kit'),
     firmUsdPerGpuH: est(0.44, 'USD/GPU-h', 'no rental market; L4 spot price used as a proxy'),
     spotUsdPerGpuH: est(0.3, 'USD/GPU-h', 'no rental market; proxy'),
+    serverW: est(0, 'W', 'integrated module, no separate host'), serverUsd: est(0, 'USD', 'integrated module, no separate host'),
   },
 ];
 

@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { paretoFrontier, axisValues, applyAxis, sweep, tornado, pareto, evaluate, metricValue, AXIS_OPTIONS, RANGE_OPTIONS } from './optimizer';
 import { defaultConfig } from './defaults';
 import { getPath } from './config';
+import { runAnnual } from './annual';
+import { economics } from './economics';
 
 const small = () => {
   const c = defaultConfig();
@@ -71,5 +73,12 @@ describe('optimizer', () => {
   });
   it('the default scenario is feasible in the optimizer', () => {
     expect(evaluate(defaultConfig()).feasible).toBe(true);
+  });
+  it('reports margin after capital per year', () => {
+    const c = defaultConfig();
+    const ev = evaluate(c);
+    const a = runAnnual(c, 'representative', { sampleModules: 4 });
+    const e = economics(c, a);
+    expect(ev.marginAfterCapitalYear).toBeCloseTo(e.grossMargin - e.annualCapital, 6);
   });
 });

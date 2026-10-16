@@ -13,7 +13,8 @@ export function EconomicsHeadline({ econ, cfg }: { econ: Econ; cfg: SimConfig })
       <Stat label="Revenue per year" value={fmtUsdCompact(econ.revenue.total)} sub={`${fmtUsdCompact(econ.revenue.firm)} firm, ${fmtUsdCompact(econ.revenue.spot)} spot`} />
       <Stat label="Opex per year" value={fmtUsdCompact(econ.opexTotal)} />
       <Stat label="Gross margin per year" value={fmtUsdCompact(econ.grossMargin)} tone={econ.grossMargin >= 0 ? 'good' : 'bad'} />
-      <Stat label="Cost per GPU-hour" value={fmtUsd(econ.costPerGpuHour, 2)} sub={`Market ${fmtUsd(econ.marketFirm, 2)} firm, ${fmtUsd(econ.marketSpot, 2)} spot`} />
+      <Stat label="Cost per GPU-hour" value={fmtUsd(econ.costPerGpuHour, 2)} sub={`Our price ${fmtUsd(econ.priceFirm, 2)} firm, ${fmtUsd(econ.priceSpot, 2)} spot`} />
+      <Stat label="Competitor price" value={`${fmtUsd(econ.marketFirm, 2)} firm`} sub={`${econ.benchmarkLabel}, ${fmtUsd(econ.marketSpot, 2)} spot`} />
       <Stat label="Margin per GPU-hour" value={fmtUsd(econ.marginPerGpuHour, 2)} sub="After amortized capital" tone={econ.marginPerGpuHour >= 0 ? 'good' : 'bad'} />
       <Stat label="Delivered GPU-hours" value={fmtCompact(econ.gpuHours)} sub={`${fmtCompact(econ.firmGpuHours)} firm, ${fmtCompact(econ.spotGpuHours)} spot`} />
       <Stat label="Capex per module" value={fmtUsd(econ.capex.perModule)} />

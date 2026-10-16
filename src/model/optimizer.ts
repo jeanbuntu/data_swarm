@@ -8,10 +8,11 @@ import { feasibility } from './feasibility';
 import { mulberry32 } from './rng';
 import { ACCELERATORS, PANELS, PLANS } from '../presets';
 
-export type Metric = 'pflopHours' | 'costPerGpuHour' | 'marginYear' | 'marginPerGpuHour' | 'paybackMonths';
+export type Metric = 'pflopHours' | 'costPerGpuHour' | 'marginYear' | 'marginAfterCapitalYear' | 'marginPerGpuHour' | 'paybackMonths';
 
 export const METRICS: { id: Metric; label: string; better: 'high' | 'low' }[] = [
   { id: 'marginPerGpuHour', label: 'Margin per GPU-hour (USD)', better: 'high' },
+  { id: 'marginAfterCapitalYear', label: 'Margin after capital per year (USD)', better: 'high' },
   { id: 'marginYear', label: 'Gross margin per year (USD)', better: 'high' },
   { id: 'pflopHours', label: 'Delivered PFLOP-hours per year', better: 'high' },
   { id: 'costPerGpuHour', label: 'Cost per GPU-hour (USD)', better: 'low' },
@@ -25,6 +26,8 @@ export interface Evaluation {
   marginPerGpuHour: number;
   paybackMonths: number | null;
   capexTotal: number;
+  /** Revenue minus opex minus amortized capital, per year. */
+  marginAfterCapitalYear: number;
   feasible: boolean;
 }
 
@@ -39,6 +42,7 @@ export function evaluate(cfg: SimConfig, sampleModules = 4): Evaluation {
     marginPerGpuHour: e.marginPerGpuHour,
     paybackMonths: e.paybackMonths,
     capexTotal: e.capex.total,
+    marginAfterCapitalYear: e.grossMargin - e.annualCapital,
     feasible: !flags.some((f) => f.severity === 'error'),
   };
 }

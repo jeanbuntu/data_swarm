@@ -1,6 +1,6 @@
 import { ConfigSchema, SimConfig, getPath, setPath } from './config';
 import {
-  Sourced, s, PANELS, BATTERIES, ACCELERATORS, TERMINALS, PLANS, THRUSTERS, COSTS, SOCAL_ENV, ACCESSED,
+  Sourced, s, MARKET_DEFAULTS, PANELS, BATTERIES, ACCELERATORS, TERMINALS, PLANS, THRUSTERS, COSTS, SOCAL_ENV, ACCESSED,
 } from '../presets';
 
 export type PresetKind = 'panel' | 'battery' | 'accelerator' | 'terminal' | 'plan' | 'thruster';
@@ -13,6 +13,7 @@ export const PRESET_FIELDS: Record<PresetKind, { presetPath: string; fields: Rec
     fields: {
       'compute.tdpW': 'tdpW', 'compute.denseTflops': 'denseTflops', 'compute.priceUsd': 'priceUsd', 'compute.massKg': 'massKg',
       'compute.volumeL': 'volumeL', 'econ.firmUsdPerGpuH': 'firmUsdPerGpuH', 'econ.spotUsdPerGpuH': 'spotUsdPerGpuH',
+      'market.serverOverheadW': 'serverW', 'market.serverOverheadUsd': 'serverUsd',
     },
   },
   terminal: { presetPath: 'comms.terminalId', fields: { 'comms.terminalW': 'terminalW', 'comms.terminalUsd': 'usd', 'comms.terminalMassKg': 'massKg', 'comms.downMbps': 'downMbps', 'comms.upMbps': 'upMbps' } },
@@ -86,10 +87,11 @@ export const SOURCED_DEFAULTS: [string, Sourced][] = [
   ['econ.vesselDayUsd', COSTS.vesselDayUsd], ['econ.maintenanceVisitsPerYear', COSTS.maintenanceVisitsPerYear], ['econ.visitUsd', COSTS.visitUsd],
   ['econ.insurancePct', COSTS.insurancePct], ['econ.moduleLossRate', COSTS.moduleLossRate],
   ['econ.acceleratorRefreshYears', COSTS.acceleratorRefreshYears], ['econ.discountRate', COSTS.discountRate], ['econ.horizonYears', COSTS.horizonYears],
+  ...Object.entries(MARKET_DEFAULTS).map(([k, v]) => [`market.${k}`, v] as [string, Sourced]),
 ];
 
 const BASE: SimConfig = {
-  version: 1, name: 'Baseline 20-module swarm', seed: 42,
+  version: 2, name: 'Baseline 20-module swarm', seed: 42,
   hull: { sideM: 0, draftM: 0, massKg: 0, podVolumeL: 0, podMassKg: 0, petalCount: 0, petalLengthM: 0, petalWidthM: 0, tracking: 'yaw', fixedTiltDeg: 0, maxTiltDeg: 0, dragCd: 0 },
   panel: { presetId: '', efficiency: 0, usdPerW: 0, kgPerM2: 0, tempCoeffPerC: 0 },
   pv: { mpptEff: 0, waterTempC: 0, cellTempRiseC: 0 },
@@ -112,6 +114,11 @@ const BASE: SimConfig = {
     mpptUsdPerW: 0, gnssUsd: 0, avionicsUsd: 0, hostUsd: 0, batteryIntegrationUplift: 0, integrationPct: 0, contingencyPct: 0, sparesPct: 0,
     deploymentVesselDays: 0, vesselDayUsd: 0, maintenanceVisitsPerYear: 0, visitUsd: 0, insurancePct: 0, moduleLossRate: 0,
     acceleratorRefreshYears: 0, discountRate: 0, horizonYears: 0,
+  },
+  market: {
+    priceMode: 'manual', benchmark: 'gas', undercutUsd: 0, gasUsdPerMMBtu: 0, heatRateBtuPerKwh: 0, gasOmUsdPerMWh: 0, genCapexUsdPerKw: 0,
+    genLifeYears: 0, pue: 0, facilityUsdPerKwMonth: 0, serverOverheadW: 0, serverOverheadUsd: 0, gpuLifeYears: 0, benchmarkUtilization: 0,
+    operatorMargin: 0, competitorWacc: 0,
   },
 };
 
